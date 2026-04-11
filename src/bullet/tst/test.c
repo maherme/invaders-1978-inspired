@@ -38,6 +38,15 @@ main(void)
         cmocka_unit_test_setup(testBulletSpaceshipHitBulletAliensNoBullets, setup),
         cmocka_unit_test_setup(testBulletSpaceshipHitBulletAliensCmpFalse, setup),
         cmocka_unit_test_setup(testBulletSpaceshipHitBulletAliensCmpTrue, setup),
+        cmocka_unit_test_setup(testBulletOnCollisionNonBulletEntities, setup),
+        cmocka_unit_test_setup(testBulletOnCollisionNullOwnerVsBunker, setup),
+        cmocka_unit_test_setup(testBulletOnCollisionBulletVsBullet, setup),
+        cmocka_unit_test_setup(testBulletOnCollisionSpaceshipBulletVsAlien, setup),
+        cmocka_unit_test_setup(testBulletOnCollisionSpaceshipBulletVsBunker, setup),
+        cmocka_unit_test_setup(testBulletOnCollisionBunkerVsSpaceshipBullet, setup),
+        cmocka_unit_test_setup(testBulletOnCollisionAlienBulletVsAlien, setup),
+        cmocka_unit_test_setup(testBulletOnCollisionAlienBulletVsSpaceshipBullet, setup),
+        cmocka_unit_test_setup(testBulletOnCollisionAlienBulletVsBunker, setup),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

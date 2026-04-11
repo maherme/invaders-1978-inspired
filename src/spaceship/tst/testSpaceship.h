@@ -10,14 +10,12 @@
 #ifndef __TESTSPACESHIP_H__
 #define __TESTSPACESHIP_H__
 
+#include "events.h"
+
+extern entity_death_event_t death_event_data;
+
 void
 testSpaceshipCreate(void **status);
-
-void
-testSpaceshipDestroyNullParameter(void **status);
-
-void
-testSpaceshipDestroy(void **status);
 
 void
 testSpaceshipAliveNullParameter(void **status);
@@ -27,5 +25,14 @@ testSpaceshipAliveFalse(void **status);
 
 void
 testSpaceshipAliveTrue(void **status);
+
+void
+testSpaceshipOnCollisionEntityA(void **status);
+
+void
+testSpaceshipOnCollisionEntityB(void **status);
+
+void
+testSpaceshipOnCollisionNoSpaceship(void **status);
 
 #endif

@@ -10,6 +10,7 @@
 #include "aliens.h"
 #include "bullet.h"
 #include "bunkers.h"
+#include "collision.h"
 #include "engine.h"
 #include "entity_types.h"
 #include "events.h"
@@ -63,7 +64,7 @@ bulletActionsSingle(bullet_t bullet)
     entity_type_t type;
     bulletGetType(bullet, &type);
     sprite_t *bullet_sprite = graphGetSprite((base_t *)bullet);
-    if (physicCheckBorderCollision(bullet_sprite, UP) || physicCheckBorderCollision(bullet_sprite, DOWN))
+    if (collisionCheckBorder(bullet_sprite, UP) || collisionCheckBorder(bullet_sprite, DOWN))
     {
         if (type == ENTITY_SPACESHIP_BULLET)
         {
@@ -92,13 +93,16 @@ bulletActionsSingle(bullet_t bullet)
 }
 
 static void
-spaceshipCreateAfterDie(void)
+spaceshipExplosionCallback(void);
+
+static void
+spaceshipRespawnLogic(void)
 {
     if (bulletNoneUsed() && explosionsAllFinished())
     {
-        gameContext.spaceship = spaceshipCreate(GAME_WIDTH / 2, 0);
+        gameContext.spaceship = spaceshipCreate(GAME_WIDTH / 2, 0, spaceshipExplosionCallback);
         bulletAlienInhibit(false);
-        engineUnregister(spaceshipCreateAfterDie);
+        engineUnregister(spaceshipRespawnLogic);
     }
 }
 
@@ -106,53 +110,29 @@ static void
 spaceshipExplosionCallback(void)
 {
     eventEmit(EVENT_REMOVE_LIFE, NULL);
-    engineRegister(spaceshipCreateAfterDie);
+    engineRegister(spaceshipRespawnLogic);
 }
 
 static void
-checkCollisionBulletSpaceship(bullet_t bullet)
+onEntityDied(void *data)
 {
-    entity_type_t type;
-    bulletGetType(bullet, &type);
+    entity_death_event_t *death = (entity_death_event_t *)data;
 
-    if (!bulletUsed(bullet) || !spaceshipAlive(gameContext.spaceship) || type != ENTITY_ALIEN_BULLET)
+    switch (death->entity_type)
     {
-        return;
-    }
-
-    sprite_t *spaceship_sprite = graphGetSprite((base_t *)gameContext.spaceship);
-    sprite_t *bullet_sprite = graphGetSprite((base_t *)bullet);
-
-    if (physicCheckSpritesPixelCollision(spaceship_sprite, bullet_sprite))
-    {
-        bulletAlienInhibit(true);
-        bulletDestroy(bullet);
-        explosionCreate(spaceship_sprite->x + spaceship_sprite->width / 2,
-                        spaceship_sprite->y,
-                        ENTITY_SPACESHIP,
-                        spaceshipExplosionCallback);
-        spaceshipDestroy(gameContext.spaceship);
-    }
-}
-
-static void
-checkCollisionBulletSpaceshipBulletAliens(bullet_t bullet)
-{
-    entity_type_t type;
-    bulletGetType(bullet, &type);
-
-    if (!bulletUsed(bullet) || type != ENTITY_SPACESHIP_BULLET)
-    {
-        return;
-    }
-
-    if (bulletSpaceshipHitBulletAliens(physicCheckSpritesPixelCollision))
-    {
-        sprite_t *bullet_sprite = graphGetSprite((base_t *)bullet);
-        explosionCreate(bullet_sprite->x, bullet_sprite->y, ENTITY_SPACESHIP_BULLET, NULL);
-        explosionCreate(bullet_sprite->x, bullet_sprite->y, ENTITY_ALIEN_BULLET, NULL);
-        bulletDestroy(bullet);
-        return;
+        case ENTITY_SPACESHIP:
+            bulletAlienInhibit(true);
+            break;
+        case ENTITY_ALIEN:
+        case ENTITY_UFO:
+            scoreAddPoints(death->points);
+            break;
+        case ENTITY_SPACESHIP_BULLET:
+        case ENTITY_ALIEN_BULLET:
+        case ENTITY_BUNKER:
+        case ENTITY_COUNT:
+        default:
+            break;
     }
 }
 
@@ -160,8 +140,6 @@ static void
 bulletActions(void)
 {
     bulletCallFunctionForEach(bulletActionsSingle);
-    bulletCallFunctionForEach(checkCollisionBulletSpaceship);
-    bulletCallFunctionForEach(checkCollisionBulletSpaceshipBulletAliens);
 }
 
 static void
@@ -176,48 +154,6 @@ spaceshipFire(void)
     bulletCreate(spaceship_sprite->x + spaceship_sprite->width / 2,
                  spaceship_sprite->y + spaceship_sprite->height,
                  ENTITY_SPACESHIP_BULLET);
-}
-
-static void
-checkCollisionsBulletAlienSingle(bullet_t bullet)
-{
-    entity_type_t type;
-    bulletGetType(bullet, &type);
-
-    if (!bulletUsed(bullet) || type != ENTITY_SPACESHIP_BULLET)
-    {
-        return;
-    }
-
-    sprite_t *bullet_sprite = graphGetSprite((base_t *)bullet);
-
-    for (int i = 0; i < ALIENS_INITIAL_NUMBER; i++)
-    {
-        alien_t alien = aliensGetAlienInstance(i);
-
-        if (!alienAlive(alien))
-        {
-            continue;
-        }
-
-        sprite_t *alien_sprite = graphGetSprite((base_t *)alien);
-
-        if (physicCheckSpritesPixelCollision(alien_sprite, bullet_sprite))
-        {
-            bulletDestroy(bullet);
-            explosionCreate(alien_sprite->x + alien_sprite->width / 2, alien_sprite->y, ENTITY_ALIEN, NULL);
-            int points = aliensGetPoints(alien);
-            scoreAddPoints(points);
-            alienDestroy(alien);
-            return;
-        }
-    }
-}
-
-static void
-checkCollisionsAliensBullet(void)
-{
-    bulletCallFunctionForEach(checkCollisionsBulletAlienSingle);
 }
 
 static void
@@ -249,30 +185,6 @@ aliensActions(void)
 }
 
 static void
-checkCollisionBulletUfoSingle(bullet_t bullet)
-{
-    entity_type_t type;
-    bulletGetType(bullet, &type);
-
-    if (!bulletUsed(bullet) || type != ENTITY_SPACESHIP_BULLET)
-    {
-        return;
-    }
-
-    sprite_t *ufo_sprite = graphGetSprite((base_t *)gameContext.ufo);
-    sprite_t *bullet_sprite = graphGetSprite((base_t *)bullet);
-
-    if (physicCheckSpritesPixelCollision(ufo_sprite, bullet_sprite))
-    {
-        bulletDestroy(bullet);
-        explosionCreate(ufo_sprite->x + ufo_sprite->width / 2, ufo_sprite->y, ENTITY_UFO, NULL);
-        int points = ufoGetPoints();
-        scoreAddPoints(points);
-        ufoDestroy(gameContext.ufo);
-    }
-}
-
-static void
 ufoActions(void)
 {
     if (!ufoAlive(gameContext.ufo))
@@ -287,62 +199,11 @@ ufoActions(void)
         {
             physicMoveSprite(ufo_sprite, ufoGetDirection(gameContext.ufo));
         }
-        if (physicCheckBorderCollision(ufo_sprite, RIGHT) || physicCheckBorderCollision(ufo_sprite, LEFT))
+        if (collisionCheckBorder(ufo_sprite, RIGHT) || collisionCheckBorder(ufo_sprite, LEFT))
         {
             ufoDestroy(gameContext.ufo);
         }
-
-        bulletCallFunctionForEach(checkCollisionBulletUfoSingle);
     }
-}
-
-static void
-checkCollisionsBulletSingleBunkerSingle(bunker_t bunker, void *ctx)
-{
-    sprite_t *bunker_sprite = graphGetSprite((base_t *)bunker);
-    bullet_t bullet = (bullet_t)ctx;
-    sprite_t *bullet_sprite = graphGetSprite((base_t *)bullet);
-
-    if (physicCheckSpritesPixelCollision(bunker_sprite, bullet_sprite))
-    {
-        entity_type_t type;
-        bulletGetType(bullet, &type);
-        explosion_t explosion;
-
-        if (!bulletUsed(bullet) || type == ENTITY_SPACESHIP_BULLET)
-        {
-            explosion = explosionCreate(bullet_sprite->x, bullet_sprite->y, ENTITY_SPACESHIP_BULLET, NULL);
-        }
-        else
-        {
-            explosion =
-                explosionCreate(bullet_sprite->x, bullet_sprite->y - bullet_sprite->height / 2, ENTITY_ALIEN_BULLET, NULL);
-        }
-
-        physicMakeFootprintSprite(bunker_sprite, graphGetSprite((base_t *)explosion));
-        graphUpdateSprite(bunker_sprite);
-        bulletDestroy(bullet);
-    }
-}
-
-static void
-checkCollisionsBulletSingleBunkers(bullet_t bullet)
-{
-    entity_type_t type;
-    bulletGetType(bullet, &type);
-
-    if (!bulletUsed(bullet))
-    {
-        return;
-    }
-
-    bunkersCallFunctionForEach(checkCollisionsBulletSingleBunkerSingle, bullet);
-}
-
-static void
-checkCollisionsBulletsBunkers(void)
-{
-    bulletCallFunctionForEach(checkCollisionsBulletSingleBunkers);
 }
 
 static void
@@ -415,6 +276,7 @@ main(int argc, char **argv)
     graphInitGlut(&initGlutConfig);
     keyboardRegisterAction(spaceshipFire, ACTION_KEY_DOWN, ' ');
     keyboardInit();
+    collisionInit();
 
     eventRegister(EVENT_GAME_OVER, gameOver);
     eventRegister(EVENT_LIVES_DEPLETED, gameOver);
@@ -423,18 +285,24 @@ main(int argc, char **argv)
     eventRegister(EVENT_LIVES_CHANGED, onLivesChanged);
     eventRegister(EVENT_SCORE_CHANGED, onScoreChanged);
     eventRegister(EVENT_DANGER_LEVEL_CHANGED, ufoOnDangerLevelChanged);
+    eventRegister(EVENT_COLLISION, aliensOnCollision);
+    eventRegister(EVENT_COLLISION, bulletOnCollision);
+    eventRegister(EVENT_COLLISION, ufoOnCollision);
+    eventRegister(EVENT_COLLISION, spaceshipOnCollision);
+    eventRegister(EVENT_COLLISION, bunkersOnCollision);
+    eventRegister(EVENT_ENTITY_DIED, explosionsOnEntityDied);
+    eventRegister(EVENT_ENTITY_DIED, onEntityDied);
 
-    gameContext.spaceship = spaceshipCreate(GAME_WIDTH / 2, 0);
+    gameContext.spaceship = spaceshipCreate(GAME_WIDTH / 2, 0, spaceshipExplosionCallback);
     aliensCreate();
     bunkersCreate();
     hudInit();
     engineRegister(keyboardUpdate);
     engineRegister(explosionsDestroy);
     engineRegister(ufoActions);
-    engineRegister(checkCollisionsAliensBullet);
     engineRegister(aliensActions);
     engineRegister(bulletActions);
-    engineRegister(checkCollisionsBulletsBunkers);
+    engineRegister(collisionUpdate);
 
     clock_gettime(CLOCK_MONOTONIC, &gameContext.timer_get_shooter);
     clock_gettime(CLOCK_MONOTONIC, &gameContext.timer_alien_move);

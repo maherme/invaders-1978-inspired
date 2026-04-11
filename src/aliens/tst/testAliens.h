@@ -10,6 +10,10 @@
 #ifndef __TESTALIENS_H__
 #define __TESTALIENS_H__
 
+#include "events.h"
+
+extern entity_death_event_t captured_death_event;
+
 int
 setup(void **state);
 
@@ -24,12 +28,6 @@ testAlienAliveFalse(void **status);
 
 void
 testAlienAliveTrue(void **status);
-
-void
-testAlienDestroyNullParameter(void **status);
-
-void
-testAlienDestroy(void **status);
 
 void
 testAliensGetAlienInstanceInvalidIndex(void **status);
@@ -59,9 +57,12 @@ void
 testAliensMoveMaxRight(void **status);
 
 void
-testAliensGetPointsNullParameter(void **status);
+testAliensOnCollisionEntityAAlien(void **status);
 
 void
-testAliensPointsByType(void **state);
+testAliensOnCollisionEntityBAlien(void **status);
+
+void
+testAliensOnCollisionNoAlien(void **status);
 
 #endif /* __TESTALIENS_H__ */

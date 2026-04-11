@@ -8,6 +8,8 @@
  */
 
 #include "testUfo.h"
+#include "collision.h"
+#include "entity_types.h"
 #include "events.h"
 #include "ufo.h"
 #include <cmocka.h>
@@ -33,6 +35,7 @@ testUfoCreateLeftDirection(void **status)
     expect_function_call(__wrap_rand);
     expect_function_call(__wrap_graphUpdateTimeSprite);
     expect_function_call(__wrap_graphRegisterPrint);
+    expect_function_call(__wrap_collisionRegisterCollider);
 
     ufo_t ufo = ufoCreate();
     assert_int_equal(LEFT, ufoGetDirection(ufo));
@@ -47,6 +50,7 @@ testUfoCreateRightDirection(void **status)
     expect_function_call(__wrap_rand);
     expect_function_call(__wrap_graphUpdateTimeSprite);
     expect_function_call(__wrap_graphRegisterPrint);
+    expect_function_call(__wrap_collisionRegisterCollider);
 
     ufo_t ufo = ufoCreate();
     assert_int_equal(RIGHT, ufoGetDirection(ufo));
@@ -68,6 +72,7 @@ testUfoDestroy(void **status)
 
     expect_function_call(__wrap_graphGetSprite);
     expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_collisionUnregisterCollider);
 
     ufoDestroy(ufo);
 
@@ -204,4 +209,112 @@ testUfoPointsByDangerLevel(void **status)
 
     ufoOnDangerLevelChanged(&danger_lv);
     assert_uint_equal(expected_points, helperUT_ufoGetPoints());
+}
+
+void
+testUfoOnCollisionEntityA(void **status)
+{
+    (void)status;
+
+    ufo_t ufo = helperUT_ufoGetInstance();
+    unsigned int expected_points = 150;
+    helperUT_ufoSetPoints(expected_points);
+
+    collision_event_t collision_data = {
+        .entity_a = ENTITY_UFO,
+        .owner_a = ufo,
+        .bounds_a =
+            {
+                .x = 10,
+                .y = 20,
+                .width = 16,
+                .height = 8,
+            },
+        .entity_b = ENTITY_SPACESHIP_BULLET,
+        .bounds_b =
+            {
+                .x = 100,
+                .y = 200,
+                .width = 32,
+                .height = 16,
+            },
+    };
+
+    expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
+    expect_function_call(__wrap_eventEmit);
+
+    expect_function_call(__wrap_graphGetSprite);
+    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_collisionUnregisterCollider);
+
+    ufoOnCollision(&collision_data);
+
+    assert_int_equal(10, death_event_data.x);
+    assert_int_equal(20, death_event_data.y);
+    assert_int_equal(16, death_event_data.width);
+    assert_int_equal(8, death_event_data.height);
+    assert_uint_equal(expected_points, death_event_data.points);
+    assert_int_equal(ENTITY_UFO, death_event_data.entity_type);
+}
+
+void
+testUfoOnCollisionEntityB(void **status)
+{
+    (void)status;
+
+    ufo_t ufo = helperUT_ufoGetInstance();
+    unsigned int expected_points = 300;
+    helperUT_ufoSetPoints(expected_points);
+
+    collision_event_t collision_data = {
+        .entity_a = ENTITY_SPACESHIP_BULLET,
+        .owner_a = NULL,
+        .bounds_a =
+            {
+                .x = 100,
+                .y = 200,
+                .width = 32,
+                .height = 16,
+            },
+        .entity_b = ENTITY_UFO,
+        .owner_b = ufo,
+        .bounds_b =
+            {
+                .x = 30,
+                .y = 40,
+                .width = 16,
+                .height = 8,
+            },
+    };
+
+    expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
+    expect_function_call(__wrap_eventEmit);
+
+    expect_function_call(__wrap_graphGetSprite);
+    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_collisionUnregisterCollider);
+
+    ufoOnCollision(&collision_data);
+
+    assert_int_equal(30, death_event_data.x);
+    assert_int_equal(40, death_event_data.y);
+    assert_int_equal(16, death_event_data.width);
+    assert_int_equal(8, death_event_data.height);
+    assert_uint_equal(expected_points, death_event_data.points);
+    assert_int_equal(ENTITY_UFO, death_event_data.entity_type);
+}
+
+void
+testUfoOnCollisionNoUfo(void **status)
+{
+    (void)status;
+
+    collision_event_t collision_data = {
+        .entity_a = ENTITY_COUNT,
+        .owner_a = NULL,
+        .entity_b = ENTITY_COUNT,
+        .owner_b = NULL,
+    };
+
+    ufoOnCollision(&collision_data);
 }

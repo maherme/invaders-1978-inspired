@@ -8,7 +8,9 @@
  */
 
 #include "bullet.h"
+#include "collision.h"
 #include "entity_types.h"
+#include "events.h"
 #include "graph.h"
 #include "graphGlutCallbacks.h"
 #include "utils.h"
@@ -37,6 +39,7 @@ struct bullet_instance
     sprite_t sprite;
     entity_type_t type;
     bool used;
+    collision_handle_t collision_handle;
 };
 
 typedef struct
@@ -205,6 +208,18 @@ bulletCreate(int x, int y, entity_type_t type)
 
             inst->used = true;
 
+            collider_t col = {
+                .x = &inst->sprite.x,
+                .y = &inst->sprite.y,
+                .width = inst->sprite.width,
+                .height = inst->sprite.height,
+                .pixel_data_ref = (const char **)&inst->sprite.image,
+                .owner = inst,
+                .entity = type,
+            };
+
+            inst->collision_handle = collisionRegisterCollider(&col);
+
             return;
         }
     }
@@ -220,6 +235,7 @@ bulletDestroy(bullet_t bullet)
 
     sprite_t *bullet_sprite = graphGetSprite((base_t *)bullet);
     graphUnregisterPrint(bullet_sprite);
+    collisionUnregisterCollider(bullet->collision_handle);
     bullet->used = false;
 }
 
@@ -296,6 +312,61 @@ bulletSpaceshipHitBulletAliens(bool (*fn)(const sprite_t *const sprite1, const s
     }
 
     return false;
+}
+
+static void
+processBulletCollison(
+    entity_type_t my_type, void *owner, collision_bounds_t my_bounds, entity_type_t other_type, bool should_explode)
+{
+    if (my_type != ENTITY_SPACESHIP_BULLET && my_type != ENTITY_ALIEN_BULLET)
+    {
+        return;
+    }
+
+    if (owner)
+    {
+        if (should_explode)
+        {
+            entity_death_event_t death = {
+                .x = my_bounds.x,
+                .y = my_bounds.y,
+                .width = my_bounds.width,
+                .height = my_bounds.height,
+                .entity_type = my_type,
+            };
+
+            if (my_type == ENTITY_ALIEN_BULLET && other_type == ENTITY_BUNKER)
+            {
+                death.y -= my_bounds.height / 2;
+            }
+
+            eventEmit(EVENT_ENTITY_DIED, &death);
+        }
+        bulletDestroy((bullet_t)owner);
+    }
+}
+
+void
+bulletOnCollision(void *data)
+{
+    collision_event_t *collision_data = (collision_event_t *)data;
+
+    bool is_bullet_vs_bullet =
+        (collision_data->entity_a == ENTITY_SPACESHIP_BULLET && collision_data->entity_b == ENTITY_ALIEN_BULLET) ||
+        (collision_data->entity_a == ENTITY_ALIEN_BULLET && collision_data->entity_b == ENTITY_SPACESHIP_BULLET);
+    bool is_bullet_vs_bunker = (collision_data->entity_a == ENTITY_BUNKER || collision_data->entity_b == ENTITY_BUNKER);
+    bool should_explode = is_bullet_vs_bullet || is_bullet_vs_bunker;
+
+    processBulletCollison(collision_data->entity_a,
+                          collision_data->owner_a,
+                          collision_data->bounds_a,
+                          collision_data->entity_b,
+                          should_explode);
+    processBulletCollison(collision_data->entity_b,
+                          collision_data->owner_b,
+                          collision_data->bounds_b,
+                          collision_data->entity_a,
+                          should_explode);
 }
 
 #ifdef UNIT_TESTING

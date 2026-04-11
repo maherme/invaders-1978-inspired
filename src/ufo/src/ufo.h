@@ -36,6 +36,9 @@ ufoGetPoints(void);
 void
 ufoOnDangerLevelChanged(void *data);
 
+void
+ufoOnCollision(void *data);
+
 #ifdef UNIT_TESTING
 ufo_t
 helperUT_ufoGetInstance(void);

@@ -34,9 +34,6 @@ void
 bulletCallFunctionForEach(void (*fn)(bullet_t));
 
 void
-bulletDestroy(bullet_t bullet);
-
-void
 bulletAlienInhibit(bool inhibit);
 
 bool
@@ -44,6 +41,9 @@ bulletNoneUsed(void);
 
 bool
 bulletSpaceshipHitBulletAliens(bool (*fn)(const sprite_t *const sprite1, const sprite_t *const sprite2));
+
+void
+bulletOnCollision(void *data);
 
 #ifdef UNIT_TESTING
 #include <string.h>

@@ -10,13 +10,34 @@
 #ifndef __TESTBUNKERS_H__
 #define __TESTBUNKERS_H__
 
+/* Shall be 4 bunkers */
+#define NUM_TEST_BUNKERS 4
+
+int
+setup(void **state);
+
 void
 testBunkersCreate(void **status);
 
 void
-testBunkersCallFunctionForEachNullParameter(void **status);
+testBunkersOnCollisionShipBulletEntityA(void **status);
 
 void
-testBunkersCallFunctionForEach(void **status);
+testBunkersOnCollisionAlienBulletEntityA(void **status);
+
+void
+testBunkersOnCollisionShipBulletEntityB(void **status);
+
+void
+testBunkersOnCollisionAlienBulletEntityB(void **status);
+
+void
+testBunkersOnCollisionNoBunker(void **status);
+
+void
+testBunkersOnCollisionNullOwner(void **status);
+
+void
+testBunkersOnCollisionUnsupportedEntity(void **status);
 
 #endif /* __TESTBUNKERS_H__ */

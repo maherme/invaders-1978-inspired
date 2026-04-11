@@ -10,6 +10,8 @@
 #ifndef __EVENTS_H__
 #define __EVENTS_H__
 
+#include "entity_types.h"
+
 #define EVENTS_MAX_NUM_CB 16
 
 typedef enum
@@ -21,6 +23,8 @@ typedef enum
     EVENT_LIVES_CHANGED,
     EVENT_SCORE_CHANGED,
     EVENT_DANGER_LEVEL_CHANGED,
+    EVENT_COLLISION,
+    EVENT_ENTITY_DIED,
     EVENT_COUNT
 } event_type_t;
 
@@ -30,6 +34,15 @@ typedef enum
     DANGER_MID,
     DANGER_HIGH
 } danger_level_t;
+
+typedef struct
+{
+    int x, y;
+    int width, height;
+    entity_type_t entity_type;
+    unsigned int points;
+    void (*on_finish)(void);
+} entity_death_event_t;
 
 typedef void (*event_cb_t)(void *data);
 

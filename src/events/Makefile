@@ -10,6 +10,6 @@
 include ../../toolchain.mk
 include ../common.mk
 
-INCLUDES +=
+INCLUDES += -I../../src
 
 LDFLAGS +=

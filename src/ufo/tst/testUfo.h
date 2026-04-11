@@ -10,6 +10,10 @@
 #ifndef __TESTUFO_H__
 #define __TESTUFO_H__
 
+#include "events.h"
+
+extern entity_death_event_t death_event_data;
+
 void
 testUfoCreateLeftDirection(void **status);
 
@@ -54,5 +58,14 @@ testUfoGetPoints(void **status);
 
 void
 testUfoPointsByDangerLevel(void **status);
+
+void
+testUfoOnCollisionEntityA(void **status);
+
+void
+testUfoOnCollisionEntityB(void **status);
+
+void
+testUfoOnCollisionNoUfo(void **status);
 
 #endif /* __TESTUFO_H__ */

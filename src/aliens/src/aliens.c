@@ -8,6 +8,8 @@
  */
 
 #include "aliens.h"
+#include "collision.h"
+#include "entity_types.h"
 #include "events.h"
 #include "graph.h"
 #include "graphGlutCallbacks.h"
@@ -36,6 +38,7 @@ struct alien_instance
     sprite_t sprite;
     bool alive;
     unsigned int points;
+    collision_handle_t collision_handle;
 };
 
 static struct
@@ -170,18 +173,26 @@ alienCreate(int x, int y, alien_type_t type, int index)
     graphUpdateTimeSprite(&inst->sprite);
     graphRegisterPrint(&inst->sprite);
     inst->alive = true;
+
+    collider_t col = {
+        .x = &inst->sprite.x,
+        .y = &inst->sprite.y,
+        .width = inst->sprite.width,
+        .height = inst->sprite.height,
+        .pixel_data_ref = (const char **)&inst->sprite.image,
+        .entity = ENTITY_ALIEN,
+        .owner = inst,
+    };
+
+    inst->collision_handle = collisionRegisterCollider(&col);
 }
 
-void
+static void
 alienDestroy(alien_t alien)
 {
-    if (!alien)
-    {
-        return;
-    }
-
     sprite_t *alien_sprite = graphGetSprite((base_t *)alien);
     graphUnregisterPrint(alien_sprite);
+    collisionUnregisterCollider(alien->collision_handle);
     alien->alive = false;
     alienPool.aliens_alive--;
 }
@@ -351,15 +362,37 @@ aliensMove(void)
     alienPool.descend_pending = false;
 }
 
-unsigned int
-aliensGetPoints(alien_t alien)
+void
+aliensOnCollision(void *data)
 {
-    if (!alien)
+    collision_event_t *collision_data = (collision_event_t *)data;
+    alien_t alien = NULL;
+    collision_bounds_t bounds = {0};
+
+    if (collision_data->entity_a == ENTITY_ALIEN)
     {
-        return 0;
+        alien = (alien_t)collision_data->owner_a;
+        bounds = collision_data->bounds_a;
+    }
+    else if (collision_data->entity_b == ENTITY_ALIEN)
+    {
+        alien = (alien_t)collision_data->owner_b;
+        bounds = collision_data->bounds_b;
     }
 
-    return alien->points;
+    if (alien)
+    {
+        entity_death_event_t death_data = {
+            .x = bounds.x,
+            .y = bounds.y,
+            .width = bounds.width,
+            .height = bounds.height,
+            .points = alien->points,
+            .entity_type = ENTITY_ALIEN,
+        };
+        eventEmit(EVENT_ENTITY_DIED, &death_data);
+        alienDestroy(alien);
+    }
 }
 
 #ifdef UNIT_TESTING
@@ -406,6 +439,18 @@ void
 helperUT_aliensSetType(alien_t alien, alien_type_t type)
 {
     setAlienType(alien, type);
+}
+
+bool
+helperUT_alienGetAlive(alien_t alien)
+{
+    return alien->alive;
+}
+
+unsigned int
+helperUT_aliensGetAlives(void)
+{
+    return alienPool.aliens_alive;
 }
 
 #endif /* UNIT_TESTING */

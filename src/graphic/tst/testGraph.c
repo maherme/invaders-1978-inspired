@@ -504,3 +504,283 @@ testGraphPrintGameBorder(void **status)
 
     graphPrintBorder(0, 0, GAME_WIDTH, GAME_HEIGHT);
 }
+
+void
+testGraphMakeFootprintSpriteNullArguments(void **status)
+{
+    (void)status;
+
+    _Alignas(uint32_t) uint8_t image[1][1][NUM_RGBA_CHANNELS] = {{W}};
+
+    sprite_t sprite = {
+        .image = (const char *)image,
+        .width = 1,
+        .height = 1,
+        .x = 0,
+        .y = 0,
+    };
+
+    sprite_t mask = {
+        .image = (const char *)image,
+        .width = 1,
+        .height = 1,
+        .x = 0,
+        .y = 0,
+    };
+
+    sprite_t null_image_mask = {
+        .image = NULL,
+        .width = 1,
+        .height = 1,
+        .x = 0,
+        .y = 0,
+    };
+
+    graphMakeFootprintSprite(NULL, &mask);
+    graphMakeFootprintSprite(&sprite, NULL);
+    graphMakeFootprintSprite(&sprite, &null_image_mask);
+}
+
+void
+testGraphMakeFootprintSpriteInvalidDimensions(void **status)
+{
+    (void)status;
+
+    _Alignas(uint32_t) uint8_t image1[1][1][NUM_RGBA_CHANNELS] = {{W}};
+    _Alignas(uint32_t) uint8_t image2[1][1][NUM_RGBA_CHANNELS] = {{W}};
+
+    sprite_t sprite = {
+        .image = (const char *)image1,
+        .width = 1,
+        .height = 1,
+        .x = 0,
+        .y = 0,
+    };
+
+    sprite_t mask = {
+        .image = (const char *)image2,
+        .width = 1,
+        .height = 1,
+        .x = 0,
+        .y = 0,
+    };
+
+    sprite.width = 0;
+    graphMakeFootprintSprite(&sprite, &mask);
+
+    sprite.width = 1;
+    sprite.height = 0;
+    graphMakeFootprintSprite(&sprite, &mask);
+
+    sprite.height = 1;
+    mask.width = 0;
+    graphMakeFootprintSprite(&sprite, &mask);
+
+    mask.width = 1;
+    mask.height = 0;
+    graphMakeFootprintSprite(&sprite, &mask);
+
+    const uint8_t expected[NUM_RGBA_CHANNELS] = W;
+    assert_memory_equal(image1[0][0], expected, sizeof(expected));
+}
+
+void
+testGraphMakeFootprintSpriteNoHorizontalOverlap(void **status)
+{
+    (void)status;
+
+    char image1[2][2][NUM_RGBA_CHANNELS] = {0};
+    char image2[2][2][NUM_RGBA_CHANNELS] = {0};
+
+    sprite_t sprite = {
+        .image = (const char *)image1,
+        .width = 2,
+        .height = 2,
+        .x = 0,
+        .y = 0,
+    };
+
+    sprite_t mask = {
+        .image = (const char *)image2,
+        .width = 2,
+        .height = 2,
+        .x = 2,
+        .y = 0,
+    };
+
+    graphMakeFootprintSprite(&sprite, &mask);
+}
+
+void
+testGraphMakeFootprintSpriteNoVerticalOverlap(void **status)
+{
+    (void)status;
+
+    char image1[2][2][NUM_RGBA_CHANNELS] = {0};
+    char image2[2][2][NUM_RGBA_CHANNELS] = {0};
+
+    sprite_t sprite = {
+        .image = (const char *)image1,
+        .width = 2,
+        .height = 2,
+        .x = 0,
+        .y = 0,
+    };
+
+    sprite_t mask = {
+        .image = (const char *)image2,
+        .width = 2,
+        .height = 2,
+        .x = 0,
+        .y = 2,
+    };
+
+    graphMakeFootprintSprite(&sprite, &mask);
+}
+
+void
+testGraphMakeFootprintSpriteOverlap(void **status)
+{
+    (void)status;
+
+    char image1[2][2][NUM_RGBA_CHANNELS] = {0};
+    char image2[2][2][NUM_RGBA_CHANNELS] = {0};
+
+    sprite_t sprite = {
+        .image = (const char *)image1,
+        .width = 2,
+        .height = 2,
+        .x = 0,
+        .y = 0,
+    };
+
+    sprite_t mask = {
+        .image = (const char *)image2,
+        .width = 2,
+        .height = 2,
+        .x = 0,
+        .y = 0,
+    };
+
+    graphMakeFootprintSprite(&sprite, &mask);
+}
+
+void
+testGraphMakeFootprintSpriteOpaquePixels(void **status)
+{
+    (void)status;
+
+    _Alignas(uint32_t) uint8_t image1[1][1][NUM_RGBA_CHANNELS] = {{R}};
+    _Alignas(uint32_t) uint8_t image2[1][1][NUM_RGBA_CHANNELS] = {{W}};
+
+    sprite_t sprite = {
+        .image = (const char *)image1,
+        .width = 1,
+        .height = 1,
+        .x = 0,
+        .y = 0,
+    };
+
+    sprite_t mask = {
+        .image = (const char *)image2,
+        .width = 1,
+        .height = 1,
+        .x = 0,
+        .y = 0,
+    };
+
+    graphMakeFootprintSprite(&sprite, &mask);
+
+    const uint8_t expected[NUM_RGBA_CHANNELS] = B;
+    assert_memory_equal(image1[0][0], expected, sizeof(expected));
+}
+
+void
+testGraphMakeFootprintSpriteTransparentSpritePixel(void **status)
+{
+    (void)status;
+
+    _Alignas(uint32_t) uint8_t image1[1][1][NUM_RGBA_CHANNELS] = {{B}};
+    _Alignas(uint32_t) uint8_t image2[1][1][NUM_RGBA_CHANNELS] = {{W}};
+
+    sprite_t sprite = {
+        .image = (const char *)image1,
+        .width = 1,
+        .height = 1,
+        .x = 0,
+        .y = 0,
+    };
+
+    sprite_t mask = {
+        .image = (const char *)image2,
+        .width = 1,
+        .height = 1,
+        .x = 0,
+        .y = 0,
+    };
+
+    graphMakeFootprintSprite(&sprite, &mask);
+
+    const uint8_t expected[NUM_RGBA_CHANNELS] = B;
+    assert_memory_equal(image1[0][0], expected, sizeof(expected));
+}
+
+void
+testGraphMakeFootprintSpriteTransparentMaskPixel(void **status)
+{
+    (void)status;
+
+    _Alignas(uint32_t) uint8_t image1[1][1][NUM_RGBA_CHANNELS] = {{R}};
+    _Alignas(uint32_t) uint8_t image2[1][1][NUM_RGBA_CHANNELS] = {{B}};
+
+    sprite_t sprite = {
+        .image = (const char *)image1,
+        .width = 1,
+        .height = 1,
+        .x = 0,
+        .y = 0,
+    };
+
+    sprite_t mask = {
+        .image = (const char *)image2,
+        .width = 1,
+        .height = 1,
+        .x = 0,
+        .y = 0,
+    };
+
+    graphMakeFootprintSprite(&sprite, &mask);
+
+    const uint8_t expected[NUM_RGBA_CHANNELS] = R;
+    assert_memory_equal(image1[0][0], expected, sizeof(expected));
+}
+
+void
+testGraphMakeFootprintSpriteSemiTransparentPixels(void **status)
+{
+    (void)status;
+
+    _Alignas(uint32_t) uint8_t image1[1][1][NUM_RGBA_CHANNELS] = {{{255, 0, 0, 128}}};
+    _Alignas(uint32_t) uint8_t image2[1][1][NUM_RGBA_CHANNELS] = {{{0, 255, 0, 128}}};
+
+    sprite_t sprite = {
+        .image = (const char *)image1,
+        .width = 1,
+        .height = 1,
+        .x = 0,
+        .y = 0,
+    };
+
+    sprite_t mask = {
+        .image = (const char *)image2,
+        .width = 1,
+        .height = 1,
+        .x = 0,
+        .y = 0,
+    };
+
+    graphMakeFootprintSprite(&sprite, &mask);
+
+    const uint8_t expected[NUM_RGBA_CHANNELS] = B;
+    assert_memory_equal(image1[0][0], expected, sizeof(expected));
+}

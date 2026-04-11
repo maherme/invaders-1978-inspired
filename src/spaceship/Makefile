@@ -10,10 +10,17 @@
 include ../../toolchain.mk
 include ../common.mk
 
-INCLUDES += -I../graphic/src \
+INCLUDES += -I../../src \
+			-I../graphic/src \
 			-I../utils/src \
-			-I../graphicglut/src
+			-I../graphicglut/src \
+			-I../collision/src \
+			-I../events/src \
+			-I../physic/src
 
 LDFLAGS += -Wl,--wrap=graphGetSprite \
 		   -Wl,--wrap=graphRegisterPrint \
-		   -Wl,--wrap=graphUnregisterPrint
+		   -Wl,--wrap=graphUnregisterPrint \
+		   -Wl,--wrap=eventEmit \
+		   -Wl,--wrap=collisionRegisterCollider \
+		   -Wl,--wrap=collisionUnregisterCollider

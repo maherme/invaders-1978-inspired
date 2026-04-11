@@ -18,9 +18,14 @@ int
 main(void)
 {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(testBunkersCreate),
-        cmocka_unit_test(testBunkersCallFunctionForEachNullParameter),
-        cmocka_unit_test(testBunkersCallFunctionForEach),
+        cmocka_unit_test_setup(testBunkersCreate, setup),
+        cmocka_unit_test_setup(testBunkersOnCollisionShipBulletEntityA, setup),
+        cmocka_unit_test_setup(testBunkersOnCollisionAlienBulletEntityA, setup),
+        cmocka_unit_test_setup(testBunkersOnCollisionShipBulletEntityB, setup),
+        cmocka_unit_test_setup(testBunkersOnCollisionAlienBulletEntityB, setup),
+        cmocka_unit_test_setup(testBunkersOnCollisionNoBunker, setup),
+        cmocka_unit_test_setup(testBunkersOnCollisionNullOwner, setup),
+        cmocka_unit_test_setup(testBunkersOnCollisionUnsupportedEntity, setup),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

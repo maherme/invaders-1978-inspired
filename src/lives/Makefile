@@ -10,7 +10,8 @@
 include ../../toolchain.mk
 include ../common.mk
 
-INCLUDES += -I../graphic/src \
+INCLUDES += -I../../src \
+			-I../graphic/src \
 			-I../graphicglut/src \
 			-I../events/src
 

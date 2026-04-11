@@ -46,4 +46,22 @@ testExplosionAllFinishedFalse(void **status);
 void
 testExplosionsGetExplosionHeight(void **status);
 
+void
+testExplosionOnEntityDiedOnFinishAction(void **status);
+
+void
+testExplosionOnEntityDiedOnFinishNull(void **status);
+
+void
+testExplosionOnEntityDiedNothingToDo(void **status);
+
+void
+testExplosionsGetStaticFrameEntityReturnNull(void **status);
+
+void
+testExplosionGetStaticFrameSpaceshipBullet(void **status);
+
+void
+testExplosionGetStaticFrameAlienBullet(void **status);
+
 #endif

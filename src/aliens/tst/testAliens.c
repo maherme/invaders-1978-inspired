@@ -9,6 +9,7 @@
 
 #include "testAliens.h"
 #include "aliens.h"
+#include "collision.h"
 #include "events.h"
 #include "graph.h"
 #include "physic.h"
@@ -42,6 +43,7 @@ testAliensCreate(void **status)
     {
         expect_function_call(__wrap_graphUpdateTimeSprite);
         expect_function_call(__wrap_graphRegisterPrint);
+        expect_function_call(__wrap_collisionRegisterCollider);
     }
 
     aliensCreate();
@@ -77,26 +79,6 @@ testAlienAliveTrue(void **status)
     alien_t alien = helperUT_alienInjectInPool(0, 0, NULL);
 
     assert_true(alienAlive(alien));
-}
-
-void
-testAlienDestroyNullParameter(void **status)
-{
-    (void)status;
-
-    alienDestroy(NULL);
-}
-
-void
-testAlienDestroy(void **status)
-{
-    (void)status;
-    alien_t alien = helperUT_alienInjectInPool(0, 0, NULL);
-
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
-
-    alienDestroy(alien);
 }
 
 void
@@ -256,28 +238,104 @@ testAliensMoveMaxRight(void **status)
 }
 
 void
-testAliensGetPointsNullParameter(void **status)
+testAliensOnCollisionEntityAAlien(void **status)
 {
     (void)status;
 
-    assert_uint_equal(0, aliensGetPoints(NULL));
+    alien_t alien = helperUT_alienInjectInPool(0, 0, NULL);
+    helperUT_aliensSetType(alien, SQUID);
+
+    collision_event_t collision = {
+        .entity_a = ENTITY_ALIEN,
+        .entity_b = ENTITY_SPACESHIP_BULLET,
+        .owner_a = alien,
+        .bounds_a =
+            {
+                .x = 10,
+                .y = 20,
+                .width = 8,
+                .height = 8,
+            },
+    };
+
+    entity_death_event_t expected_death = {
+        .x = 10,
+        .y = 20,
+        .width = 8,
+        .height = 8,
+        .points = 30,
+        .entity_type = ENTITY_ALIEN,
+    };
+
+    expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
+    expect_function_call(__wrap_eventEmit);
+
+    expect_function_call(__wrap_graphGetSprite);
+    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_collisionUnregisterCollider);
+
+    aliensOnCollision(&collision);
+
+    assert_memory_equal(&captured_death_event, &expected_death, sizeof(expected_death));
+
+    assert_false(helperUT_alienGetAlive(alien));
+    assert_uint_equal(0, helperUT_aliensGetAlives());
 }
 
 void
-testAliensPointsByType(void **state)
+testAliensOnCollisionEntityBAlien(void **status)
 {
-    (void)state;
+    (void)status;
+
     alien_t alien = helperUT_alienInjectInPool(0, 0, NULL);
-
-    unsigned int expected_points = 10;
-    helperUT_aliensSetType(alien, OCTOPUS);
-    assert_uint_equal(expected_points, aliensGetPoints(alien));
-
-    expected_points = 20;
     helperUT_aliensSetType(alien, CRAB);
-    assert_uint_equal(expected_points, aliensGetPoints(alien));
 
-    expected_points = 30;
-    helperUT_aliensSetType(alien, SQUID);
-    assert_uint_equal(expected_points, aliensGetPoints(alien));
+    collision_event_t collision = {
+        .entity_a = ENTITY_SPACESHIP_BULLET,
+        .entity_b = ENTITY_ALIEN,
+        .owner_b = alien,
+        .bounds_b =
+            {
+                .x = 40,
+                .y = 50,
+                .width = 11,
+                .height = 8,
+            },
+    };
+
+    entity_death_event_t expected_death = {
+        .x = 40,
+        .y = 50,
+        .width = 11,
+        .height = 8,
+        .points = 20,
+        .entity_type = ENTITY_ALIEN,
+    };
+
+    expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
+    expect_function_call(__wrap_eventEmit);
+
+    expect_function_call(__wrap_graphGetSprite);
+    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_collisionUnregisterCollider);
+
+    aliensOnCollision(&collision);
+
+    assert_memory_equal(&captured_death_event, &expected_death, sizeof(expected_death));
+
+    assert_false(helperUT_alienGetAlive(alien));
+    assert_uint_equal(0, helperUT_aliensGetAlives());
+}
+
+void
+testAliensOnCollisionNoAlien(void **status)
+{
+    (void)status;
+
+    collision_event_t collision = {
+        .entity_a = ENTITY_COUNT,
+        .entity_b = ENTITY_COUNT,
+    };
+
+    aliensOnCollision(&collision);
 }

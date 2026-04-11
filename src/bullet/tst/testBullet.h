@@ -10,6 +10,13 @@
 #ifndef __TESTBULLET_H__
 #define __TESTBULLET_H__
 
+#include "events.h"
+#include "mocksEvents.h"
+#include <stddef.h>
+
+extern entity_death_event_t captured_deaths[MAX_CAPTURED_DEATHS];
+extern size_t captured_death_count;
+
 int
 setup(void **state);
 
@@ -72,5 +79,32 @@ testBulletSpaceshipHitBulletAliensCmpFalse(void **status);
 
 void
 testBulletSpaceshipHitBulletAliensCmpTrue(void **status);
+
+void
+testBulletOnCollisionNonBulletEntities(void **status);
+
+void
+testBulletOnCollisionNullOwnerVsBunker(void **status);
+
+void
+testBulletOnCollisionBulletVsBullet(void **status);
+
+void
+testBulletOnCollisionSpaceshipBulletVsAlien(void **status);
+
+void
+testBulletOnCollisionSpaceshipBulletVsBunker(void **status);
+
+void
+testBulletOnCollisionBunkerVsSpaceshipBullet(void **status);
+
+void
+testBulletOnCollisionAlienBulletVsAlien(void **status);
+
+void
+testBulletOnCollisionAlienBulletVsSpaceshipBullet(void **status);
+
+void
+testBulletOnCollisionAlienBulletVsBunker(void **status);
 
 #endif
