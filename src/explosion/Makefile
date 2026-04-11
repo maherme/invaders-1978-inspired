@@ -13,7 +13,8 @@ include ../common.mk
 INCLUDES += -I../../src \
 			-I../graphic/src \
 			-I../utils/src \
-			-I../graphicglut/src
+			-I../graphicglut/src \
+			-I../events/src
 
 LDFLAGS += -Wl,--wrap=utilsCalloc \
 		   -Wl,--wrap=utilsCheckTimeout \

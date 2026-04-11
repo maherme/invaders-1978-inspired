@@ -9,7 +9,9 @@
 
 #include "testExplosion.h"
 #include "entity_types.h"
+#include "events.h"
 #include "explosion.h"
+#include "graph.h"
 #include <cmocka.h>
 #include <setjmp.h>
 #include <stdarg.h>
@@ -67,6 +69,23 @@ registerExplosionSpaceship(void (*callback)(void))
 
 static entity_type_t explosions[] = {ENTITY_SPACESHIP_BULLET, ENTITY_ALIEN_BULLET, ENTITY_SPACESHIP, ENTITY_UFO, ENTITY_ALIEN};
 
+static void
+checkExplosionCreate(entity_type_t type)
+{
+    expect_function_call(__wrap_utilsCalloc);
+    expect_function_call(__wrap_utilsCalloc);
+    if (type == ENTITY_SPACESHIP)
+    {
+        will_return(__wrap_clock_gettime, 0); /* tv_sec */
+        will_return(__wrap_clock_gettime, 0); /* tv_nsec */
+        expect_function_call(__wrap_clock_gettime);
+    }
+    will_return(__wrap_clock_gettime, 0); /* tv_sec */
+    will_return(__wrap_clock_gettime, 0); /* tv_nsec */
+    expect_function_call(__wrap_clock_gettime);
+    expect_function_call(__wrap_graphRegisterPrint);
+}
+
 void
 testExplosionCreate(void **status)
 {
@@ -74,19 +93,7 @@ testExplosionCreate(void **status)
 
     for (size_t i = 0; i < sizeof(explosions) / sizeof(explosions[0]); i++)
     {
-        expect_function_call(__wrap_utilsCalloc);
-        expect_function_call(__wrap_utilsCalloc);
-        if (explosions[i] == ENTITY_SPACESHIP)
-        {
-            will_return(__wrap_clock_gettime, 0); /* tv_sec */
-            will_return(__wrap_clock_gettime, 0); /* tv_nsec */
-            expect_function_call(__wrap_clock_gettime);
-        }
-        will_return(__wrap_clock_gettime, 0); /* tv_sec */
-        will_return(__wrap_clock_gettime, 0); /* tv_nsec */
-        expect_function_call(__wrap_clock_gettime);
-        expect_function_call(__wrap_graphRegisterPrint);
-
+        checkExplosionCreate(explosions[i]);
         explosionCreate(0, 0, explosions[i], NULL);
     }
 }
@@ -227,6 +234,14 @@ static const unsigned int expected_explosion_heights[] = {
     [ENTITY_ALIEN] = 8,
 };
 
+static const unsigned int expected_explosion_widths[] = {
+    [ENTITY_SPACESHIP_BULLET] = 8,
+    [ENTITY_ALIEN_BULLET] = 6,
+    [ENTITY_SPACESHIP] = 16,
+    [ENTITY_UFO] = 24,
+    [ENTITY_ALIEN] = 14,
+};
+
 void
 testExplosionsGetExplosionHeight(void **status)
 {
@@ -236,4 +251,123 @@ testExplosionsGetExplosionHeight(void **status)
     {
         assert_uint_equal(expected_explosion_heights[explosions[i]], explosionsGetExplosionHeight(explosions[i]));
     }
+}
+
+static void
+foo_callback(void)
+{
+    /* do nothing, dummy callback */
+}
+
+static entity_type_t explosions_on_finish_action[] = {ENTITY_ALIEN, ENTITY_UFO, ENTITY_SPACESHIP};
+
+void
+testExplosionOnEntityDiedOnFinishAction(void **status)
+{
+    (void)status;
+
+    for (size_t i = 0; i < sizeof(explosions_on_finish_action) / sizeof(explosions_on_finish_action[0]); i++)
+    {
+        entity_death_event_t death_data = {.x = 10,
+                                           .y = 10,
+                                           .width = 20,
+                                           .entity_type = explosions_on_finish_action[i],
+                                           .on_finish = foo_callback};
+
+        checkExplosionCreate(death_data.entity_type);
+
+        explosionsOnEntityDied(&death_data);
+
+        explosion_t explosion = helperUT_getExplosionFromPoolByType(explosions_on_finish_action[i]);
+        sprite_t explosion_sprite = helperUT_getSpriteFromExplosion(explosion);
+
+        assert_uint_equal(death_data.entity_type, helperUT_getEntityTypeFromExplosion(explosion));
+        assert_int_equal(death_data.x + death_data.width / 2 - expected_explosion_widths[explosions_on_finish_action[i]] / 2,
+                         explosion_sprite.x);
+        assert_int_equal(death_data.y, explosion_sprite.y);
+        assert_ptr_equal(death_data.on_finish, helperUT_getCallbackFromExplosion(explosion));
+    }
+}
+
+static entity_type_t explosions_on_finish_null[] = {ENTITY_SPACESHIP_BULLET, ENTITY_ALIEN_BULLET};
+
+void
+testExplosionOnEntityDiedOnFinishNull(void **status)
+{
+    (void)status;
+
+    for (size_t i = 0; i < sizeof(explosions_on_finish_null) / sizeof(explosions_on_finish_null[0]); i++)
+    {
+        entity_death_event_t death_data = {.x = 10, .y = 10, .entity_type = explosions_on_finish_null[i], .on_finish = NULL};
+
+        checkExplosionCreate(death_data.entity_type);
+
+        explosionsOnEntityDied(&death_data);
+
+        explosion_t explosion = helperUT_getExplosionFromPoolByType(explosions_on_finish_null[i]);
+        sprite_t explosion_sprite = helperUT_getSpriteFromExplosion(explosion);
+
+        assert_uint_equal(death_data.entity_type, helperUT_getEntityTypeFromExplosion(explosion));
+        assert_int_equal(death_data.x - expected_explosion_widths[explosions_on_finish_null[i]] / 2, explosion_sprite.x);
+        assert_int_equal(death_data.y, explosion_sprite.y);
+        assert_ptr_equal(death_data.on_finish, helperUT_getCallbackFromExplosion(explosion));
+    }
+}
+
+void
+testExplosionOnEntityDiedNothingToDo(void **status)
+{
+    (void)status;
+
+    entity_death_event_t death_data = {.entity_type = ENTITY_BUNKER};
+    explosionsOnEntityDied(&death_data);
+
+    death_data.entity_type = ENTITY_COUNT;
+    explosionsOnEntityDied(&death_data);
+}
+
+void
+testExplosionsGetStaticFrameEntityReturnNull(void **status)
+{
+    (void)status;
+
+    sprite_t *returned_sprite = explosionsGetStaticFrame(ENTITY_ALIEN, 0);
+    assert_null(returned_sprite);
+
+    returned_sprite = explosionsGetStaticFrame(ENTITY_ALIEN, 0);
+    assert_null(returned_sprite);
+
+    returned_sprite = explosionsGetStaticFrame(ENTITY_UFO, 0);
+    assert_null(returned_sprite);
+
+    returned_sprite = explosionsGetStaticFrame(ENTITY_BUNKER, 0);
+    assert_null(returned_sprite);
+
+    returned_sprite = explosionsGetStaticFrame(ENTITY_SPACESHIP, 0);
+    assert_null(returned_sprite);
+
+    returned_sprite = explosionsGetStaticFrame(ENTITY_COUNT, 0);
+    assert_null(returned_sprite);
+}
+
+void
+testExplosionGetStaticFrameSpaceshipBullet(void **status)
+{
+    (void)status;
+
+    sprite_t *returned_sprite = explosionsGetStaticFrame(ENTITY_SPACESHIP_BULLET, 0);
+    assert_int_equal(returned_sprite->width, helperUT_expectedExplosionWidth(ENTITY_SPACESHIP_BULLET));
+    assert_int_equal(returned_sprite->height, helperUT_expectedExplosionHeight(ENTITY_SPACESHIP_BULLET));
+    assert_ptr_equal(returned_sprite->image, helperUT_expectedExplosionImage(ENTITY_SPACESHIP_BULLET));
+}
+
+void
+testExplosionGetStaticFrameAlienBullet(void **status)
+{
+    (void)status;
+
+    sprite_t *returned_sprite = explosionsGetStaticFrame(ENTITY_ALIEN_BULLET, 0);
+    assert_int_equal(returned_sprite->width, helperUT_expectedExplosionWidth(ENTITY_ALIEN_BULLET));
+    assert_int_equal(returned_sprite->height, helperUT_expectedExplosionHeight(ENTITY_ALIEN_BULLET));
+    assert_ptr_equal(returned_sprite->image, helperUT_expectedExplosionImage(ENTITY_ALIEN_BULLET));
 }

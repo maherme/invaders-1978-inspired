@@ -13,15 +13,16 @@
 #include "graphGlutCallbacks.h"
 #include <GL/glut.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define GAME_WIDTH 224
 #define GAME_HEIGHT 256
 #define HUD_HEIGHT 16
 
 #define NUM_RGBA_CHANNELS 4
-#define W {(char)255, (char)255, (char)255, (char)255}
-#define R {(char)255, 0, 0, (char)255}
-#define G {0, (char)255, 0, (char)255}
+#define W {(uint8_t)255, (uint8_t)255, (uint8_t)255, (uint8_t)255}
+#define R {(uint8_t)255, 0, 0, (uint8_t)255}
+#define G {0, (uint8_t)255, 0, (uint8_t)255}
 #define B {0, 0, 0, 0}
 
 typedef struct
@@ -90,5 +91,8 @@ graphUpdateSprite(const sprite_t *const sprite);
 
 void
 graphPrintBorder(int x, int y, int w, int h);
+
+void
+graphMakeFootprintSprite(const sprite_t *const sprite1, const sprite_t *const sprite2);
 
 #endif

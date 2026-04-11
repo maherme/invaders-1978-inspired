@@ -9,6 +9,7 @@
 
 #include "explosion.h"
 #include "entity_types.h"
+#include "events.h"
 #include "graph.h"
 #include "graphGlutCallbacks.h"
 #include "list.h"
@@ -323,6 +324,65 @@ explosionsGetExplosionHeight(entity_type_t type)
     return explosion_heights[type];
 }
 
+void
+explosionsOnEntityDied(void *data)
+{
+    entity_death_event_t *death_data = (entity_death_event_t *)data;
+
+    switch (death_data->entity_type)
+    {
+        case ENTITY_ALIEN:
+        case ENTITY_UFO:
+        case ENTITY_SPACESHIP:
+            explosionCreate(death_data->x + death_data->width / 2,
+                            death_data->y,
+                            death_data->entity_type,
+                            death_data->on_finish);
+            break;
+        case ENTITY_SPACESHIP_BULLET:
+        case ENTITY_ALIEN_BULLET:
+            explosionCreate(death_data->x, death_data->y, death_data->entity_type, NULL);
+            break;
+        case ENTITY_BUNKER:
+        case ENTITY_COUNT:
+        default:
+            break;
+    }
+}
+
+sprite_t *
+explosionsGetStaticFrame(entity_type_t type, int num_frame)
+{
+    (void)num_frame;
+    static sprite_t result;
+    result.x = 0;
+    result.y = 0;
+
+    switch (type)
+    {
+        case ENTITY_SPACESHIP_BULLET:
+            result.width = explosion_bullet_spaceship.image_width;
+            result.height = explosion_bullet_spaceship.image_height;
+            result.image = (const char *)explosion_bullet_spaceship.image;
+            break;
+        case ENTITY_ALIEN_BULLET:
+            result.width = explosion_bullet_alien.image_width;
+            result.height = explosion_bullet_alien.image_height;
+            result.image = (const char *)explosion_bullet_alien.image;
+            break;
+        case ENTITY_ALIEN:
+        case ENTITY_UFO:
+        case ENTITY_BUNKER:
+        case ENTITY_SPACESHIP:
+        case ENTITY_COUNT:
+        default:
+            return NULL;
+            break;
+    }
+
+    return &result;
+}
+
 #ifdef UNIT_TESTING
 void
 helperUT_explosionResetList(void)
@@ -335,5 +395,110 @@ helperUT_explosionResetList(void)
         free((void *)n->explosion);
         free((void *)n);
     }
+}
+
+explosion_t
+helperUT_getExplosionFromPoolByType(entity_type_t type)
+{
+    explosion_node_t *n;
+
+    /* GCOVR_EXCL_START */
+    list_for_each_entry(n, &explosions, node)
+    {
+        if (n->explosion->type == type)
+        {
+            return n->explosion;
+        }
+    }
+
+    return NULL;
+    /* GCOVR_EXCL_STOP */
+}
+
+sprite_t
+helperUT_getSpriteFromExplosion(explosion_t explosion)
+{
+    return explosion->sprite;
+}
+
+callback_t
+helperUT_getCallbackFromExplosion(explosion_t explosion)
+{
+    return explosion->callback;
+}
+
+entity_type_t
+helperUT_getEntityTypeFromExplosion(explosion_t explosion)
+{
+    return explosion->type;
+}
+
+int
+helperUT_expectedExplosionWidth(entity_type_t type)
+{
+    int result = 0;
+
+    switch (type)
+    {
+        case ENTITY_SPACESHIP_BULLET:
+            result = explosion_bullet_spaceship.image_width;
+            break;
+        case ENTITY_ALIEN_BULLET:
+            result = explosion_bullet_alien.image_width;
+            break;
+            /* GCOVR_EXCL_START */
+        default:
+            result = -1;
+            break; /* GCOVR_EXCL_BR_SOURCE */
+                   /* GCOVR_EXCL_STOP */
+    }
+
+    return result;
+}
+
+int
+helperUT_expectedExplosionHeight(entity_type_t type)
+{
+    int result = 0;
+
+    switch (type)
+    {
+        case ENTITY_SPACESHIP_BULLET:
+            result = explosion_bullet_spaceship.image_height;
+            break;
+        case ENTITY_ALIEN_BULLET:
+            result = explosion_bullet_alien.image_height;
+            break;
+            /* GCOVR_EXCL_START */
+        default:
+            result = -1;
+            break; /* GCOVR_EXCL_BR_SOURCE */
+                   /* GCOVR_EXCL_STOP */
+    }
+
+    return result;
+}
+
+const char *
+helperUT_expectedExplosionImage(entity_type_t type)
+{
+    const char *result = 0;
+
+    switch (type)
+    {
+        case ENTITY_SPACESHIP_BULLET:
+            result = (const char *)explosion_bullet_spaceship.image;
+            break;
+        case ENTITY_ALIEN_BULLET:
+            result = (const char *)explosion_bullet_alien.image;
+            break;
+            /* GCOVR_EXCL_START */
+        default:
+            result = NULL;
+            break; /* GCOVR_EXCL_BR_SOURCE */
+                   /* GCOVR_EXCL_STOP */
+    }
+
+    return result;
 }
 #endif /* UNIT_TESTING */

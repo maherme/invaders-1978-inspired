@@ -67,4 +67,31 @@ testGraphUpdateSprite(void **status);
 void
 testGraphPrintGameBorder(void **status);
 
+void
+testGraphMakeFootprintSpriteNullArguments(void **status);
+
+void
+testGraphMakeFootprintSpriteInvalidDimensions(void **status);
+
+void
+testGraphMakeFootprintSpriteNoHorizontalOverlap(void **status);
+
+void
+testGraphMakeFootprintSpriteNoVerticalOverlap(void **status);
+
+void
+testGraphMakeFootprintSpriteOverlap(void **status);
+
+void
+testGraphMakeFootprintSpriteOpaquePixels(void **status);
+
+void
+testGraphMakeFootprintSpriteTransparentSpritePixel(void **status);
+
+void
+testGraphMakeFootprintSpriteTransparentMaskPixel(void **status);
+
+void
+testGraphMakeFootprintSpriteSemiTransparentPixels(void **status);
+
 #endif

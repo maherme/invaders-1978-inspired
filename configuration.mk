@@ -40,4 +40,5 @@ DIR_MAKES := $(PROJECT_ROOT)/src/utils \
 			 $(PROJECT_ROOT)/src/events \
 			 $(PROJECT_ROOT)/src/fonts \
 			 $(PROJECT_ROOT)/src/hud \
-			 $(PROJECT_ROOT)/src/score
+			 $(PROJECT_ROOT)/src/score \
+			 $(PROJECT_ROOT)/src/collision

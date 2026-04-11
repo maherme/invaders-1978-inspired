@@ -10,11 +10,13 @@
 include ../../toolchain.mk
 include ../common.mk
 
-INCLUDES += -I../graphic/src \
+INCLUDES += -I../../src \
+			-I../graphic/src \
 			-I../utils/src \
 			-I../graphicglut/src \
 			-I../physic/src \
-			-I../events/src
+			-I../events/src \
+			-I../collision/src
 
 LDFLAGS += -Wl,--wrap=utilsCalloc \
 		   -Wl,--wrap=utilsCheckTimeout \
@@ -22,4 +24,7 @@ LDFLAGS += -Wl,--wrap=utilsCalloc \
 		   -Wl,--wrap=graphUpdateTimeSprite \
 		   -Wl,--wrap=graphRegisterPrint \
 		   -Wl,--wrap=graphUnregisterPrint \
-		   -Wl,--wrap=rand
+		   -Wl,--wrap=rand \
+		   -Wl,--wrap=eventEmit \
+		   -Wl,--wrap=collisionRegisterCollider \
+		   -Wl,--wrap=collisionUnregisterCollider

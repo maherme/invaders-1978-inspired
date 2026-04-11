@@ -142,3 +142,50 @@ graphPrintBorder(int x, int y, int w, int h)
 
     glPopAttrib(); // restaura todo
 }
+
+void
+graphMakeFootprintSprite(const sprite_t *const sprite, const sprite_t *const mask)
+{
+    if (!sprite || !mask || !mask->image || sprite->width <= 0 || sprite->height <= 0 || mask->width <= 0 || mask->height <= 0)
+    {
+        return;
+    }
+
+    sprite_coordinates_t coord1, coord2;
+    graphGetSpriteCoordinates(sprite, &coord1);
+    graphGetSpriteCoordinates(mask, &coord2);
+
+    const int overlap_left = (coord1.x1 > coord2.x1) ? coord1.x1 : coord2.x1;
+    const int overlap_right = (coord1.x2 < coord2.x2) ? coord1.x2 : coord2.x2;
+    const int overlap_top = (coord1.y2 < coord2.y2) ? coord1.y2 : coord2.y2;
+    const int overlap_bottom = (coord1.y1 > coord2.y1) ? coord1.y1 : coord2.y1;
+
+    if (overlap_left >= overlap_right || overlap_bottom >= overlap_top)
+    {
+        return;
+    }
+
+    uint32_t *img1 = (uint32_t *)sprite->image;
+    const uint32_t *img2 = (const uint32_t *)mask->image;
+
+    for (int y = overlap_bottom; y < overlap_top; y++)
+    {
+        for (int x = overlap_left; x < overlap_right; x++)
+        {
+            const int x1 = x - coord1.x1;
+            const int y1 = (sprite->height - 1) - (y - coord1.y1);
+
+            const int x2 = x - coord2.x1;
+            const int y2 = (mask->height - 1) - (y - coord2.y1);
+
+            uint32_t *pixel1 = &img1[(size_t)y1 * (size_t)sprite->width + (size_t)x1];
+            const uint32_t pixel2 = img2[(size_t)y2 * (size_t)mask->width + (size_t)x2];
+
+            /* (alpha != 0) */
+            if ((*pixel1 & UINT32_C(0xFF000000)) && (pixel2 & UINT32_C(0xFF000000)))
+            {
+                *pixel1 = 0;
+            }
+        }
+    }
+}

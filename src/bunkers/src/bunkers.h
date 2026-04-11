@@ -16,6 +16,19 @@ void
 bunkersCreate(void);
 
 void
-bunkersCallFunctionForEach(void (*fn)(bunker_t, void *ctx), void *ctx);
+bunkersOnCollision(void *data);
+
+#ifdef UNIT_TESTING
+#include "graph.h"
+
+void
+helperUT_bunkersInitPool(void);
+
+bunker_t
+helperUT_bunkersInjectInPool(int index);
+
+sprite_t *
+helperUT_bunkersGetSprite(bunker_t bunker);
+#endif /* UNIT_TESTING */
 
 #endif /* __BUNKERS__H__ */

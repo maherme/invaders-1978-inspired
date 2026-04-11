@@ -37,6 +37,15 @@ main(void)
         cmocka_unit_test(testGraphUpdateSpriteNullParameter),
         cmocka_unit_test(testGraphUpdateSprite),
         cmocka_unit_test(testGraphPrintGameBorder),
+        cmocka_unit_test(testGraphMakeFootprintSpriteNullArguments),
+        cmocka_unit_test(testGraphMakeFootprintSpriteInvalidDimensions),
+        cmocka_unit_test(testGraphMakeFootprintSpriteNoHorizontalOverlap),
+        cmocka_unit_test(testGraphMakeFootprintSpriteNoVerticalOverlap),
+        cmocka_unit_test(testGraphMakeFootprintSpriteOverlap),
+        cmocka_unit_test(testGraphMakeFootprintSpriteOpaquePixels),
+        cmocka_unit_test(testGraphMakeFootprintSpriteTransparentSpritePixel),
+        cmocka_unit_test(testGraphMakeFootprintSpriteTransparentMaskPixel),
+        cmocka_unit_test(testGraphMakeFootprintSpriteSemiTransparentPixels),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

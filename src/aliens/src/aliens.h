@@ -31,9 +31,6 @@ typedef struct alien_instance *alien_t;
 void
 aliensCreate(void);
 
-void
-alienDestroy(alien_t alien);
-
 bool
 alienAlive(alien_t alien);
 
@@ -49,8 +46,8 @@ aliensGetShooter(void);
 void
 aliensMove(void);
 
-unsigned int
-aliensGetPoints(alien_t alien);
+void
+aliensOnCollision(void *data);
 
 #ifdef UNIT_TESTING
 #include "physic.h"
@@ -69,6 +66,12 @@ helperUT_alienSetCurrentDirection(direction_t dir);
 
 void
 helperUT_aliensSetType(alien_t alien, alien_type_t type);
+
+bool
+helperUT_alienGetAlive(alien_t alien);
+
+unsigned int
+helperUT_aliensGetAlives(void);
 
 #endif /* UNIT_TESTING */
 

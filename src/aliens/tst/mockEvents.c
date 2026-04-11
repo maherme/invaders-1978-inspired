@@ -14,10 +14,17 @@
 #include <stddef.h>
 #include <stdint.h>
 
+entity_death_event_t captured_death_event;
+
 void
 __wrap_eventEmit(event_type_t type, void *data)
 {
-    (void)data;
-    check_expected_uint(type);
     function_called();
+    check_expected_uint(type);
+
+    assert_non_null(data);
+    if (type == EVENT_ENTITY_DIED)
+    {
+        captured_death_event = *(entity_death_event_t *)data;
+    }
 }

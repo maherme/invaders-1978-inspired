@@ -8,6 +8,8 @@
  */
 
 #include "ufo.h"
+#include "collision.h"
+#include "entity_types.h"
 #include "events.h"
 #include "graph.h"
 #include "graphGlutCallbacks.h"
@@ -27,6 +29,7 @@ struct ufo_instance_t
     long long time_to_appear;
     bool alive;
     unsigned int points;
+    collision_handle_t collision_handle;
 };
 
 static struct ufo_instance_t ufo;
@@ -93,6 +96,18 @@ ufoCreate(void)
     inst->alive = true;
     inst->points = UFO_INITIAL_POINTS;
 
+    collider_t col = {
+        .x = &inst->sprite.x,
+        .y = &inst->sprite.y,
+        .width = inst->sprite.width,
+        .height = inst->sprite.height,
+        .pixel_data_ref = (const char **)&inst->sprite.image,
+        .entity = ENTITY_UFO,
+        .owner = inst,
+    };
+
+    inst->collision_handle = collisionRegisterCollider(&col);
+
     return inst;
 }
 
@@ -106,6 +121,7 @@ ufoDestroy(ufo_t ufo)
 
     sprite_t *ufo_sprite = graphGetSprite((base_t *)ufo);
     graphUnregisterPrint(ufo_sprite);
+    collisionUnregisterCollider(ufo->collision_handle);
     ufo->alive = false;
 }
 
@@ -173,6 +189,39 @@ ufoOnDangerLevelChanged(void *data)
         default:
             ufo.points = UFO_INITIAL_POINTS;
             break;
+    }
+}
+
+void
+ufoOnCollision(void *data)
+{
+    collision_event_t *collision_data = (collision_event_t *)data;
+    ufo_t ufo = NULL;
+    collision_bounds_t bounds = {0};
+
+    if (collision_data->entity_a == ENTITY_UFO)
+    {
+        ufo = (ufo_t)collision_data->owner_a;
+        bounds = collision_data->bounds_a;
+    }
+    else if (collision_data->entity_b == ENTITY_UFO)
+    {
+        ufo = (ufo_t)collision_data->owner_b;
+        bounds = collision_data->bounds_b;
+    }
+
+    if (ufo)
+    {
+        entity_death_event_t death_data = {
+            .x = bounds.x,
+            .y = bounds.y,
+            .width = bounds.width,
+            .height = bounds.height,
+            .points = ufo->points,
+            .entity_type = ENTITY_UFO,
+        };
+        eventEmit(EVENT_ENTITY_DIED, &death_data);
+        ufoDestroy(ufo);
     }
 }
 

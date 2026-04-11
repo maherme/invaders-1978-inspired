@@ -33,6 +33,9 @@ main(void)
         cmocka_unit_test(testUfoCheckForMovingTrueMoreCalls),
         cmocka_unit_test(testUfoGetPoints),
         cmocka_unit_test(testUfoPointsByDangerLevel),
+        cmocka_unit_test(testUfoOnCollisionEntityA),
+        cmocka_unit_test(testUfoOnCollisionEntityB),
+        cmocka_unit_test(testUfoOnCollisionNoUfo),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

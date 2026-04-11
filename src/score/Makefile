@@ -10,6 +10,7 @@
 include ../../toolchain.mk
 include ../common.mk
 
-INCLUDES += -I../events/src
+INCLUDES += -I../../src \
+			-I../events/src
 
 LDFLAGS += -Wl,--wrap=eventEmit

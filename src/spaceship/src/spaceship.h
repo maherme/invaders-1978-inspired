@@ -15,13 +15,13 @@
 typedef struct spaceship_instance_t *spaceship_t;
 
 spaceship_t
-spaceshipCreate(int x, int y);
-
-void
-spaceshipDestroy(spaceship_t spaceship);
+spaceshipCreate(int x, int y, void (*death_callback)(void));
 
 bool
 spaceshipAlive(spaceship_t spaceship);
+
+void
+spaceshipOnCollision(void *data);
 
 #ifdef UNIT_TESTING
 spaceship_t
