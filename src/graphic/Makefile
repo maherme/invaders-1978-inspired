@@ -28,5 +28,6 @@ LDFLAGS += -Wl,--wrap=glGenTextures \
 		   -Wl,--wrap=glColor4ubv \
 		   -Wl,--wrap=glLineWidth \
 		   -Wl,--wrap=glPopAttrib \
+		   -Wl,--wrap=glGetTexLevelParameteriv \
 		   -Wl,--wrap=gettimeofday \
 		   -Wl,--wrap=clock_gettime

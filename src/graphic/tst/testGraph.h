@@ -62,7 +62,13 @@ void
 testGraphUpdateSpriteNullParameter(void **status);
 
 void
-testGraphUpdateSprite(void **status);
+testGraphUpdateSpriteSameDimensions(void **status);
+
+void
+testGraphUpdateSpriteDifferentHeight(void **status);
+
+void
+testGraphUpdateSpriteDifferentWidth(void **status);
 
 void
 testGraphPrintGameBorder(void **status);

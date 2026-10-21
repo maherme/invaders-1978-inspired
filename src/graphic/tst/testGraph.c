@@ -158,6 +158,16 @@ __wrap_glPopAttrib(void)
     function_called();
 }
 
+void
+__wrap_glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint *params)
+{
+    check_expected_uint(target);
+    check_expected_int(level);
+    check_expected_uint(pname);
+    *params = mock_type(GLint);
+    function_called();
+}
+
 int
 __wrap_clock_gettime(clockid_t clockid, struct timespec *tp)
 {
@@ -177,6 +187,14 @@ testGraphCreateImageNullParameter(void **status)
     graphCreateImage(NULL);
 }
 
+static void
+testGlBindTexture(GLuint expected_texture)
+{
+    expect_uint_value(__wrap_glBindTexture, target, GL_TEXTURE_2D);
+    expect_uint_value(__wrap_glBindTexture, texture, expected_texture);
+    expect_function_call(__wrap_glBindTexture);
+}
+
 void
 testGraphCreateImageSuccess(void **status)
 {
@@ -186,9 +204,7 @@ testGraphCreateImageSuccess(void **status)
     expect_int_value(__wrap_glGenTextures, n, 1);
     expect_function_call(__wrap_glGenTextures);
 
-    expect_uint_value(__wrap_glBindTexture, target, GL_TEXTURE_2D);
-    expect_uint_value(__wrap_glBindTexture, texture, sprite.textureId);
-    expect_function_call(__wrap_glBindTexture);
+    testGlBindTexture(sprite.textureId);
 
     expect_uint_value(__wrap_glTexImage2D, target, GL_TEXTURE_2D);
     expect_int_value(__wrap_glTexImage2D, level, 0);
@@ -324,9 +340,7 @@ testGraphUpdateImageToPrintMoreOneFrame(void **status)
                        .width = 1,
                        .height = 1};
 
-    expect_uint_value(__wrap_glBindTexture, target, GL_TEXTURE_2D);
-    expect_uint_value(__wrap_glBindTexture, texture, sprite.textureId);
-    expect_function_call(__wrap_glBindTexture);
+    testGlBindTexture(sprite.textureId);
 
     expect_uint_value(__wrap_glTexSubImage2D, target, GL_TEXTURE_2D);
     expect_int_value(__wrap_glTexSubImage2D, level, 0);
@@ -397,9 +411,7 @@ testGraphPrintImageSuccess(void **status)
         .visible = true,
     };
 
-    expect_uint_value(__wrap_glBindTexture, target, GL_TEXTURE_2D);
-    expect_uint_value(__wrap_glBindTexture, texture, sprite.textureId);
-    expect_function_call(__wrap_glBindTexture);
+    testGlBindTexture(sprite.textureId);
 
     expect_uint_value(__wrap_glBegin, mode, GL_QUADS);
     expect_function_call(__wrap_glBegin);
@@ -447,17 +459,42 @@ testGraphUpdateSpriteNullParameter(void **status)
     (void)status;
 
     graphUpdateSprite(NULL);
+
+    sprite_t sprite = {.image = NULL, .height = 1, .width = 1};
+    graphUpdateSprite(&sprite);
+
+    char foo = 0;
+    const char *image = &foo;
+    sprite.image = image;
+    sprite.height = 0;
+    graphUpdateSprite(&sprite);
+
+    sprite.height = 1;
+    sprite.width = 0;
+    graphUpdateSprite(&sprite);
+}
+
+static void
+testGlGetTexLevelParameteriv(GLenum expected_pname, GLint params)
+{
+    expect_int_value(__wrap_glGetTexLevelParameteriv, target, GL_TEXTURE_2D);
+    expect_int_value(__wrap_glGetTexLevelParameteriv, level, 0);
+    expect_uint_value(__wrap_glGetTexLevelParameteriv, pname, expected_pname);
+    will_return(__wrap_glGetTexLevelParameteriv, params);
+    expect_function_call(__wrap_glGetTexLevelParameteriv);
 }
 
 void
-testGraphUpdateSprite(void **status)
+testGraphUpdateSpriteSameDimensions(void **status)
 {
     (void)status;
-    sprite_t sprite = {0};
+    char image[4 * 6 * NUM_RGBA_CHANNELS] = {0};
+    sprite_t sprite = {.image = image, .width = 4, .height = 6, .textureId = 1};
 
-    expect_uint_value(__wrap_glBindTexture, target, GL_TEXTURE_2D);
-    expect_uint_value(__wrap_glBindTexture, texture, sprite.textureId);
-    expect_function_call(__wrap_glBindTexture);
+    testGlBindTexture(sprite.textureId);
+
+    testGlGetTexLevelParameteriv(GL_TEXTURE_WIDTH, sprite.width);
+    testGlGetTexLevelParameteriv(GL_TEXTURE_HEIGHT, sprite.height);
 
     expect_uint_value(__wrap_glTexSubImage2D, target, GL_TEXTURE_2D);
     expect_int_value(__wrap_glTexSubImage2D, level, 0);
@@ -473,6 +510,62 @@ testGraphUpdateSprite(void **status)
     graphUpdateSprite(&sprite);
 }
 
+static void
+testGlTexImage2D(sprite_t *sprite)
+{
+    expect_uint_value(__wrap_glTexImage2D, target, GL_TEXTURE_2D);
+    expect_int_value(__wrap_glTexImage2D, level, 0);
+    expect_int_value(__wrap_glTexImage2D, internalformat, GL_RGBA);
+    expect_int_value(__wrap_glTexImage2D, width, sprite->width);
+    expect_int_value(__wrap_glTexImage2D, height, sprite->height);
+    expect_int_value(__wrap_glTexImage2D, border, 0);
+    expect_uint_value(__wrap_glTexImage2D, format, GL_RGBA);
+    expect_uint_value(__wrap_glTexImage2D, type, GL_UNSIGNED_BYTE);
+    expect_uint_value(__wrap_glTexImage2D, data, (uintptr_t)sprite->image);
+    expect_function_call(__wrap_glTexImage2D);
+}
+
+void
+testGraphUpdateSpriteDifferentHeight(void **status)
+{
+    (void)status;
+
+    char image[4 * 6 * NUM_RGBA_CHANNELS] = {0};
+    sprite_t sprite = {
+        .image = image,
+        .width = 4,
+        .height = 6,
+        .textureId = 1,
+    };
+
+    testGlBindTexture(sprite.textureId);
+    testGlGetTexLevelParameteriv(GL_TEXTURE_WIDTH, sprite.width);
+    testGlGetTexLevelParameteriv(GL_TEXTURE_HEIGHT, sprite.height - 1);
+    testGlTexImage2D(&sprite);
+
+    graphUpdateSprite(&sprite);
+}
+
+void
+testGraphUpdateSpriteDifferentWidth(void **status)
+{
+    (void)status;
+
+    char image[4 * 6 * NUM_RGBA_CHANNELS] = {0};
+    sprite_t sprite = {
+        .image = image,
+        .width = 4,
+        .height = 6,
+        .textureId = 1,
+    };
+
+    testGlBindTexture(sprite.textureId);
+    testGlGetTexLevelParameteriv(GL_TEXTURE_WIDTH, sprite.width - 1);
+    testGlGetTexLevelParameteriv(GL_TEXTURE_HEIGHT, sprite.height);
+    testGlTexImage2D(&sprite);
+
+    graphUpdateSprite(&sprite);
+}
 void
 testGraphPrintGameBorder(void **status)
 {
