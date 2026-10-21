@@ -32,9 +32,10 @@ __wrap_fontsInitLayout(fonts_handler_t *h, int x, int y)
 }
 
 void
-__wrap_fontsRegisterSprites(fonts_handler_t *h)
+__wrap_fontsDraw(const char *const text, fonts_handler_t *fonts_handler)
 {
-    check_expected_ptr(h);
+    (void)text;
+    check_expected_ptr(fonts_handler);
     function_called();
 }
 

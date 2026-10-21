@@ -22,9 +22,6 @@ void
 fontsInitLayout(fonts_handler_t *h, int x, int y);
 
 void
-fontsRegisterSprites(fonts_handler_t *h);
-
-void
 fontsDestroyFontsHandler(fonts_handler_t *fonts_handler);
 
 void
@@ -37,21 +34,11 @@ fontsDrawNumber(int num, fonts_handler_t *fonts_handler);
 struct sprite;
 typedef struct sprite sprite_t;
 
-typedef struct
-{
-    int x, y;
-    int width, height;
-    int layer;
-} fonts_sprite_info_t;
-
 fonts_handler_t *
-helperUT_fontsMakeFakeHandler(size_t size);
+helperUT_fontsMakeFakeHandler(size_t size, int x, int y);
 
 sprite_t *
 helperUT_fontsGetSpritesPointer(fonts_handler_t *h, int index);
-
-fonts_sprite_info_t
-helperUT_fontsGetSpriteInfo(fonts_handler_t *fonts_handler, int index);
 
 size_t
 helperUT_fontsGetSize(fonts_handler_t *fonts_handler);

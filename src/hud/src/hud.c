@@ -15,11 +15,15 @@
 #define LIVES_COUNTER_NUM_DIGIT 2
 #define LIVES_COUNTER_X_POS 5
 #define LIVES_COUNTER_Y_POS 5
+#define SCORE_COUNTER_NUM_LETTERS 5
+#define SCORE_COUNTER_LETTERS_X_POS 100
+#define SCORE_COUNTER_LETTERS_Y_POS 5
 #define SCORE_COUNTER_NUM_DIGIT 6
-#define SCORE_COUNTER_X_POS 120
-#define SCORE_COUNTER_Y_POS 5
+#define SCORE_COUNTER_DIGITS_X_POS 140
+#define SCORE_COUNTER_DIGITS_Y_POS 5
 
 static fonts_handler_t *lives_counter;
+static fonts_handler_t *score_letters;
 static fonts_handler_t *score_counter;
 
 void
@@ -27,12 +31,14 @@ hudInit(void)
 {
     lives_counter = fontsCreateFontsHandler(LIVES_COUNTER_NUM_DIGIT);
     fontsInitLayout(lives_counter, LIVES_COUNTER_X_POS, LIVES_COUNTER_Y_POS);
-    fontsRegisterSprites(lives_counter);
     livesCreate(16, 5);
 
+    score_letters = fontsCreateFontsHandler(SCORE_COUNTER_NUM_LETTERS);
+    fontsInitLayout(score_letters, SCORE_COUNTER_LETTERS_X_POS, SCORE_COUNTER_LETTERS_Y_POS);
+    fontsDraw("SCORE", score_letters);
+
     score_counter = fontsCreateFontsHandler(SCORE_COUNTER_NUM_DIGIT);
-    fontsInitLayout(score_counter, SCORE_COUNTER_X_POS, SCORE_COUNTER_Y_POS);
-    fontsRegisterSprites(score_counter);
+    fontsInitLayout(score_counter, SCORE_COUNTER_DIGITS_X_POS, SCORE_COUNTER_DIGITS_Y_POS);
     scoreInit();
 }
 
@@ -55,6 +61,12 @@ fonts_handler_t *
 helperUT_hudGetLivesCounterPointer(void)
 {
     return lives_counter;
+}
+
+fonts_handler_t *
+helperUT_hudGetScoreLettersPointer(void)
+{
+    return score_letters;
 }
 
 fonts_handler_t *

@@ -21,10 +21,11 @@ main(void)
         cmocka_unit_test(testFontsCreateFontsHandler),
         cmocka_unit_test(testFontsDestroyFontsHandler),
         cmocka_unit_test(testFontsInitLayout),
-        cmocka_unit_test(testFontsRegisterSprites),
         cmocka_unit_test(testFontsDraw),
+        cmocka_unit_test(testFontsDrawNotSupported),
         cmocka_unit_test(testFontsDrawBiggerBuffer),
         cmocka_unit_test(testFontsDrawSmallerBuffer),
+        cmocka_unit_test(testFontsDrawMixedCharacters),
         cmocka_unit_test(testFontsDrawNumber),
     };
 

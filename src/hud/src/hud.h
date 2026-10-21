@@ -27,6 +27,9 @@ fonts_handler_t *
 helperUT_hudGetLivesCounterPointer(void);
 
 fonts_handler_t *
+helperUT_hudGetScoreLettersPointer(void);
+
+fonts_handler_t *
 helperUT_hudGetScoreCounterPointer(void);
 #endif /* UNIT_TESTING */
 

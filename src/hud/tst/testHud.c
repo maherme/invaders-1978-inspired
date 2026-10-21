@@ -31,18 +31,34 @@ checkLivesCounter(void)
     expect_int_value(__wrap_fontsInitLayout, x, expected_live_counter_x);
     expect_int_value(__wrap_fontsInitLayout, y, expected_live_counter_y);
     expect_function_call(__wrap_fontsInitLayout);
-    expect_uint_value(__wrap_fontsRegisterSprites, h, (uintptr_t)expected_h);
-    expect_function_call(__wrap_fontsRegisterSprites);
     expect_int_value(__wrap_livesCreate, x, expected_live_images_x);
     expect_int_value(__wrap_livesCreate, y, expected_live_images_y);
     expect_function_call(__wrap_livesCreate);
 }
 
 static void
+checkScoreLetters(void)
+{
+    int expected_num_letters = 5;
+    int expected_score_letters_x = 100;
+    int expected_score_letters_y = 5;
+    fonts_handler_t *expected_h = helperUT_hudGetScoreLettersPointer();
+
+    expect_int_value(__wrap_fontsCreateFontsHandler, size, expected_num_letters);
+    expect_function_call(__wrap_fontsCreateFontsHandler);
+    expect_uint_value(__wrap_fontsInitLayout, h, (uintptr_t)expected_h);
+    expect_int_value(__wrap_fontsInitLayout, x, expected_score_letters_x);
+    expect_int_value(__wrap_fontsInitLayout, y, expected_score_letters_y);
+    expect_function_call(__wrap_fontsInitLayout);
+    expect_uint_value(__wrap_fontsDraw, fonts_handler, (uintptr_t)expected_h);
+    expect_function_call(__wrap_fontsDraw);
+}
+
+static void
 checkScoreCounter(void)
 {
     int expected_num_digit = 6;
-    int expected_score_counter_x = 120;
+    int expected_score_counter_x = 140;
     int expected_score_counter_y = 5;
     fonts_handler_t *expected_h = helperUT_hudGetScoreCounterPointer();
 
@@ -52,8 +68,6 @@ checkScoreCounter(void)
     expect_int_value(__wrap_fontsInitLayout, x, expected_score_counter_x);
     expect_int_value(__wrap_fontsInitLayout, y, expected_score_counter_y);
     expect_function_call(__wrap_fontsInitLayout);
-    expect_uint_value(__wrap_fontsRegisterSprites, h, (uintptr_t)expected_h);
-    expect_function_call(__wrap_fontsRegisterSprites);
     expect_function_call(__wrap_scoreInit);
 }
 
@@ -62,6 +76,7 @@ testHudInit(void **status)
 {
     (void)status;
     checkLivesCounter();
+    checkScoreLetters();
     checkScoreCounter();
     hudInit();
 }
