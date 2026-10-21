@@ -113,13 +113,24 @@ graphPrintImage(const sprite_t *const sprite)
 void
 graphUpdateSprite(const sprite_t *const sprite)
 {
-    if (!sprite)
+    if (!sprite || !sprite->image || sprite->height <= 0 || sprite->width <= 0)
     {
         return;
     }
 
+    GLint width, height;
     glBindTexture(GL_TEXTURE_2D, sprite->textureId);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, sprite->width, sprite->height, GL_RGBA, GL_UNSIGNED_BYTE, sprite->image);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+
+    if (width != sprite->width || height != sprite->height)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sprite->width, sprite->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, sprite->image);
+    }
+    else
+    {
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, sprite->width, sprite->height, GL_RGBA, GL_UNSIGNED_BYTE, sprite->image);
+    }
 }
 
 void
