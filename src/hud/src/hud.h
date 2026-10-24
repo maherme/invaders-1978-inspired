@@ -19,15 +19,4 @@ onLivesChanged(void *data);
 void
 onScoreChanged(void *data);
 
-#ifdef UNIT_TESTING
-struct fonts;
-typedef struct fonts fonts_handler_t;
-
-fonts_handler_t *
-helperUT_hudGetLivesCounterPointer(void);
-
-fonts_handler_t *
-helperUT_hudGetScoreCounterPointer(void);
-#endif /* UNIT_TESTING */
-
 #endif /* __HUD_H__ */

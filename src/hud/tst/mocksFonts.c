@@ -19,7 +19,7 @@ __wrap_fontsCreateFontsHandler(size_t size)
 {
     check_expected_uint(size);
     function_called();
-    return NULL;
+    return mock_type(fonts_handler_t *);
 }
 
 void
@@ -28,6 +28,14 @@ __wrap_fontsInitLayout(fonts_handler_t *h, int x, int y)
     check_expected_ptr(h);
     check_expected_int(x);
     check_expected_int(y);
+    function_called();
+}
+
+void
+__wrap_fontsDraw(const char *const text, fonts_handler_t *fonts_handler)
+{
+    check_expected_any(text);
+    check_expected_ptr(fonts_handler);
     function_called();
 }
 
