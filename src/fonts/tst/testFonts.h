@@ -20,16 +20,19 @@ void
 testFontsInitLayout(void **status);
 
 void
-testFontsRegisterSprites(void **status);
+testFontsDraw(void **status);
 
 void
-testFontsDraw(void **status);
+testFontsDrawNotSupported(void **status);
 
 void
 testFontsDrawBiggerBuffer(void **status);
 
 void
 testFontsDrawSmallerBuffer(void **status);
+
+void
+testFontsDrawMixedCharacters(void **status);
 
 void
 testFontsDrawNumber(void **status);

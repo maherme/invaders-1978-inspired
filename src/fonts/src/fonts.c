@@ -10,15 +10,19 @@
 #include "fonts.h"
 #include "graph.h"
 #include "utils.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
-#define FONTS_NUM 10
-#define FONTS_WIDTH 4
-#define FONTS_HEIGHT 6
+#define FONTS_NUM_DIGITS 10
+#define FONTS_DIGIT_WIDTH 4
+#define FONTS_DIGIT_HEIGHT 6
+#define FONTS_NUM_LETTERS 26
+#define FONTS_LETTERS_WIDTH 5
+#define FONTS_LETTERS_HEIGHT 6
 #define FONTS_PIXELS_SPACE 1
 
-static const char fontsImage[FONTS_NUM][FONTS_HEIGHT][FONTS_WIDTH][NUM_RGBA_CHANNELS] = {
+static const char fontsDigits[FONTS_NUM_DIGITS][FONTS_DIGIT_HEIGHT][FONTS_DIGIT_WIDTH][NUM_RGBA_CHANNELS] = {
     /* clang-format off */
     /* digit 0 */
     {{B, W, W, B},
@@ -90,39 +94,228 @@ static const char fontsImage[FONTS_NUM][FONTS_HEIGHT][FONTS_WIDTH][NUM_RGBA_CHAN
      {B, W, W, W},
      {B, B, B, W},
      {B, W, W, B}}};
+
+static const char fontsLetters[FONTS_NUM_LETTERS][FONTS_LETTERS_HEIGHT][FONTS_LETTERS_WIDTH][NUM_RGBA_CHANNELS] = {
+    /* letter A */
+    {{B, W, W, W, B},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, W, W, W, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W}},
+    /* letter B */
+    {{W, W, W, W, B},
+     {W, B, B, B, W},
+     {W, W, W, W, B},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, W, W, W, B}},
+    /* letter C */
+    {{B, W, W, W, B},
+     {W, B, B, B, W},
+     {W, B, B, B, B},
+     {W, B, B, B, B},
+     {W, B, B, B, W},
+     {B, W, W, W, B}},
+    /* letter D */
+    {{W, W, W, W, B},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, W, W, W, B}},
+    /* letter E */
+    {{W, W, W, W, W},
+     {W, B, B, B, B},
+     {W, W, W, W, B},
+     {W, B, B, B, B},
+     {W, B, B, B, B},
+     {W, W, W, W, W}},
+    /* letter F */
+    {{W, W, W, W, W},
+     {W, B, B, B, B},
+     {W, W, W, W, B},
+     {W, B, B, B, B},
+     {W, B, B, B, B},
+     {W, B, B, B, B}},
+    /* letter G */
+    {{B, W, W, W, B},
+     {W, B, B, B, W},
+     {W, B, B, B, B},
+     {W, B, W, W, W},
+     {W, B, B, B, W},
+     {B, W, W, W, B}},
+    /* letter H */
+    {{W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, W, W, W, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W}},
+    /* letter I */
+    {{W, W, W, W, W},
+     {B, B, W, B, B},
+     {B, B, W, B, B},
+     {B, B, W, B, B},
+     {B, B, W, B, B},
+     {W, W, W, W, W}},
+    /* letter J */
+    {{B, B, B, B, W},
+     {B, B, B, B, W},
+     {B, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {B, W, W, W, B}},
+    /* letter K */
+    {{W, B, B, B, W},
+     {W, B, B, W, B},
+     {W, W, W, B, B},
+     {W, B, W, B, B},
+     {W, B, B, W, B},
+     {W, B, B, B, W}},
+    /* letter L */
+    {{W, B, B, B, B},
+     {W, B, B, B, B},
+     {W, B, B, B, B},
+     {W, B, B, B, B},
+     {W, B, B, B, B},
+     {W, W, W, W, W}},
+    /* letter M */
+    {{W, B, B, B, W},
+     {W, W, B, W, W},
+     {W, B, W, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W}},
+    /* letter N */
+    {{W, B, B, B, W},
+     {W, W, B, B, W},
+     {W, B, W, B, W},
+     {W, B, B, W, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W}},
+    /* letter O */
+    {{B, W, W, W, B},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {B, W, W, W, B}},
+    /* letter P */
+    {{W, W, W, W, B},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, W, W, W, B},
+     {W, B, B, B, B},
+     {W, B, B, B, B}},
+    /* letter Q */
+    {{B, W, W, W, B},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {B, W, W, W, B},
+     {B, B, B, B, W}},
+    /* letter R */
+    {{W, W, W, W, B},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, W, W, W, B},
+     {W, B, B, B, W},
+     {W, B, B, B, W}},
+    /* letter S */
+    {{B, W, W, W, W},
+     {W, B, B, B, B},
+     {B, W, W, W, B},
+     {B, B, B, B, W},
+     {B, B, B, B, W},
+     {W, W, W, W, B}},
+    /* letter T */
+    {{W, W, W, W, W},
+     {B, B, W, B, B},
+     {B, B, W, B, B},
+     {B, B, W, B, B},
+     {B, B, W, B, B},
+     {B, B, W, B, B}},
+    /* letter U */
+    {{W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {B, W, W, W, B}},
+    /* letter V */
+    {{W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {B, W, B, W, B},
+     {B, B, W, B, B}},
+    /* letter W */
+    {{W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, W, B, W},
+     {W, W, B, W, W},
+     {W, B, B, B, W}},
+    /* letter X */
+    {{W, B, B, B, W},
+     {B, W, B, W, B},
+     {B, B, W, B, B},
+     {B, B, W, B, B},
+     {B, W, B, W, B},
+     {W, B, B, B, W}},
+    /* letter Y */
+    {{W, B, B, B, W},
+     {W, B, B, B, W},
+     {W, B, B, B, W},
+     {B, W, W, W, W},
+     {B, B, B, B, W},
+     {B, W, W, W, B}},
+    /* letter Z */
+    {{W, W, W, W, W},
+     {B, B, B, B, W},
+     {B, B, B, W, B},
+     {B, B, W, B, B},
+     {B, W, B, B, B},
+     {W, W, W, W, W}},
+};
 /* clang-format on */
 
-static int
-charToFontsIndex(char c)
+static bool
+fontsSetInBuffer(char c, sprite_t *sprite)
 {
     /* NOTE:
      * condition false && false is not possible
      */
     if (c >= '0' && c <= '9') /* GCOVR_EXCL_BR_WITHOUT_HIT: 1/4 */
     {
-        return c - '0';
+        sprite->image = (const char *)fontsDigits[c - '0'];
+        sprite->width = FONTS_DIGIT_WIDTH;
+        sprite->height = FONTS_DIGIT_HEIGHT;
+        return true;
     }
 
-    return -1;
-}
-
-static void
-fontsSetInBuffer(const char *const text, sprite_t *const buffer)
-{
-    for (int i = 0; text[i]; i++)
+    /* NOTE:
+     * condition false && false is not possible
+     */
+    if (c >= 'A' && c <= 'Z') /* GCOVR_EXCL_BR_WITHOUT_HIT: 1/4 */
     {
-        int idx = charToFontsIndex(text[i]);
-        if (idx >= 0)
-        {
-            buffer[i].image = (const char *)fontsImage[idx];
-        }
+        sprite->image = (const char *)fontsLetters[c - 'A'];
+        sprite->width = FONTS_LETTERS_WIDTH;
+        sprite->height = FONTS_LETTERS_HEIGHT;
+        return true;
     }
+
+    sprite->image = NULL;
+    return false;
 }
 
 typedef struct fonts
 {
     sprite_t *sprites;
     size_t size;
+    int x;
+    int y;
 } fonts_handler_t;
 
 fonts_handler_t *
@@ -131,23 +324,11 @@ fontsCreateFontsHandler(size_t size)
     fonts_handler_t *h = utilsCalloc(1, sizeof(*h));
     h->sprites = utilsCalloc(size, sizeof(sprite_t));
     h->size = size;
+
     return h;
 }
 
-void
-fontsInitLayout(fonts_handler_t *h, int x, int y)
-{
-    for (size_t i = 0; i < h->size; i++)
-    {
-        h->sprites[i].x = x + i * (FONTS_WIDTH + FONTS_PIXELS_SPACE);
-        h->sprites[i].y = y;
-        h->sprites[i].width = FONTS_WIDTH;
-        h->sprites[i].height = FONTS_HEIGHT;
-        h->sprites[i].layer = LAYER_HUD;
-    }
-}
-
-void
+static void
 fontsRegisterSprites(fonts_handler_t *h)
 {
 
@@ -155,6 +336,20 @@ fontsRegisterSprites(fonts_handler_t *h)
     {
         graphRegisterPrint(&h->sprites[i]);
     }
+}
+
+void
+fontsInitLayout(fonts_handler_t *h, int x, int y)
+{
+    h->x = x;
+    h->y = y;
+
+    for (size_t i = 0; i < h->size; i++)
+    {
+        h->sprites[i].layer = LAYER_HUD;
+    }
+
+    fontsRegisterSprites(h);
 }
 
 void
@@ -168,17 +363,30 @@ void
 fontsDraw(const char *const text, fonts_handler_t *fonts_handler)
 {
     size_t len = strlen(text);
+
     if (fonts_handler->size < len)
     {
         return;
     }
 
-    fontsSetInBuffer(text, fonts_handler->sprites);
+    int x = fonts_handler->x;
 
     for (size_t i = 0; i < len; i++)
     {
-        fonts_handler->sprites[i].visible = true;
-        graphUpdateSprite(&fonts_handler->sprites[i]);
+        sprite_t *sprite = &fonts_handler->sprites[i];
+        bool supported = fontsSetInBuffer(text[i], sprite);
+
+        sprite->x = x;
+        sprite->y = fonts_handler->y;
+        sprite->visible = supported;
+
+        if (!supported)
+        {
+            continue;
+        }
+
+        x += sprite->width + FONTS_PIXELS_SPACE;
+        graphUpdateSprite(sprite);
     }
 
     for (size_t i = len; i < fonts_handler->size; i++)
@@ -197,11 +405,14 @@ fontsDrawNumber(int num, fonts_handler_t *fonts_handler)
 
 #ifdef UNIT_TESTING
 fonts_handler_t *
-helperUT_fontsMakeFakeHandler(size_t size)
+helperUT_fontsMakeFakeHandler(size_t size, int x, int y)
 {
     fonts_handler_t *fonts_handler = calloc(1, sizeof(fonts_handler_t));
     fonts_handler->sprites = calloc(size, sizeof(sprite_t));
     fonts_handler->size = size;
+    fonts_handler->x = x;
+    fonts_handler->y = y;
+
     return fonts_handler;
 }
 
@@ -209,20 +420,6 @@ sprite_t *
 helperUT_fontsGetSpritesPointer(fonts_handler_t *h, int index)
 {
     return &h->sprites[index];
-}
-
-fonts_sprite_info_t
-helperUT_fontsGetSpriteInfo(fonts_handler_t *fonts_handler, int index)
-{
-    fonts_sprite_info_t info;
-
-    info.x = fonts_handler->sprites[index].x;
-    info.y = fonts_handler->sprites[index].y;
-    info.width = fonts_handler->sprites[index].width;
-    info.height = fonts_handler->sprites[index].height;
-    info.layer = fonts_handler->sprites[index].layer;
-
-    return info;
 }
 
 size_t

@@ -16,7 +16,6 @@ INCLUDES += -I../fonts/src \
 
 LDFLAGS += -Wl,--wrap=fontsCreateFontsHandler \
 		   -Wl,--wrap=fontsInitLayout \
-		   -Wl,--wrap=fontsRegisterSprites \
 		   -Wl,--wrap=fontsDrawNumber \
 		   -Wl,--wrap=livesCreate \
 		   -Wl,--wrap=scoreInit

@@ -31,8 +31,6 @@ checkLivesCounter(void)
     expect_int_value(__wrap_fontsInitLayout, x, expected_live_counter_x);
     expect_int_value(__wrap_fontsInitLayout, y, expected_live_counter_y);
     expect_function_call(__wrap_fontsInitLayout);
-    expect_uint_value(__wrap_fontsRegisterSprites, h, (uintptr_t)expected_h);
-    expect_function_call(__wrap_fontsRegisterSprites);
     expect_int_value(__wrap_livesCreate, x, expected_live_images_x);
     expect_int_value(__wrap_livesCreate, y, expected_live_images_y);
     expect_function_call(__wrap_livesCreate);
@@ -52,8 +50,6 @@ checkScoreCounter(void)
     expect_int_value(__wrap_fontsInitLayout, x, expected_score_counter_x);
     expect_int_value(__wrap_fontsInitLayout, y, expected_score_counter_y);
     expect_function_call(__wrap_fontsInitLayout);
-    expect_uint_value(__wrap_fontsRegisterSprites, h, (uintptr_t)expected_h);
-    expect_function_call(__wrap_fontsRegisterSprites);
     expect_function_call(__wrap_scoreInit);
 }
 
