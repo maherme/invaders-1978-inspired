@@ -27,12 +27,10 @@ hudInit(void)
 {
     lives_counter = fontsCreateFontsHandler(LIVES_COUNTER_NUM_DIGIT);
     fontsInitLayout(lives_counter, LIVES_COUNTER_X_POS, LIVES_COUNTER_Y_POS);
-    fontsRegisterSprites(lives_counter);
     livesCreate(16, 5);
 
     score_counter = fontsCreateFontsHandler(SCORE_COUNTER_NUM_DIGIT);
     fontsInitLayout(score_counter, SCORE_COUNTER_X_POS, SCORE_COUNTER_Y_POS);
-    fontsRegisterSprites(score_counter);
     scoreInit();
 }
 
