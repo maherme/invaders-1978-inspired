@@ -46,7 +46,7 @@ registerExplosionBullet(void (*callback)(void))
     will_return(__wrap_clock_gettime, 0); /* tv_sec */
     will_return(__wrap_clock_gettime, 0); /* tv_nsec */
     expect_function_call(__wrap_clock_gettime);
-    expect_function_call(__wrap_graphRegisterPrint);
+    expect_function_call(__wrap_graphRegisterDrawFunction);
 
     explosionCreate(0, 0, ENTITY_SPACESHIP_BULLET, callback);
 }
@@ -62,7 +62,7 @@ registerExplosionSpaceship(void (*callback)(void))
     will_return(__wrap_clock_gettime, 0); /* tv_sec */
     will_return(__wrap_clock_gettime, 0); /* tv_nsec */
     expect_function_call(__wrap_clock_gettime);
-    expect_function_call(__wrap_graphRegisterPrint);
+    expect_function_call(__wrap_graphRegisterDrawFunction);
 
     explosionCreate(0, 0, ENTITY_SPACESHIP, callback);
 }
@@ -83,7 +83,7 @@ checkExplosionCreate(entity_type_t type)
     will_return(__wrap_clock_gettime, 0); /* tv_sec */
     will_return(__wrap_clock_gettime, 0); /* tv_nsec */
     expect_function_call(__wrap_clock_gettime);
-    expect_function_call(__wrap_graphRegisterPrint);
+    expect_function_call(__wrap_graphRegisterDrawFunction);
 }
 
 void
@@ -125,7 +125,7 @@ testExplosionsDestroyTimeoutTrue(void **status)
 
     will_return(__wrap_utilsCheckTimeout, true);
     expect_function_call(__wrap_utilsCheckTimeout);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
 
     explosionsDestroy();
 }
@@ -144,7 +144,7 @@ testExplosionsDestroyTimeoutCallback(void **status)
 
     will_return(__wrap_utilsCheckTimeout, true);
     expect_function_call(__wrap_utilsCheckTimeout);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(foo);
 
     explosionsDestroy();
@@ -168,7 +168,7 @@ testExplosionsDestroyTwoExplosions(void **status)
     /* second registered explosion */
     will_return(__wrap_utilsCheckTimeout, true);
     expect_function_call(__wrap_utilsCheckTimeout);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
 
     explosionsDestroy();
 }

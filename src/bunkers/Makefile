@@ -17,7 +17,9 @@ INCLUDES += -I../../src \
 			-I../physic/src \
 			-I../explosion/src
 
-LDFLAGS += -Wl,--wrap=graphRegisterPrint \
+LDFLAGS += -Wl,--wrap=graphRegisterDrawFunction \
+		   -Wl,--wrap=graphRegisterDrawSprite \
+		   -Wl,--wrap=graphDrawSprite \
 		   -Wl,--wrap=collisionRegisterCollider \
 		   -Wl,--wrap=graphMakeFootprintSprite \
 		   -Wl,--wrap=graphUpdateSprite \

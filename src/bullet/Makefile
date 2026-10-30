@@ -21,8 +21,11 @@ INCLUDES += -I../../src \
 LDFLAGS += -Wl,--wrap=utilsCalloc \
 		   -Wl,--wrap=graphGetSprite \
 		   -Wl,--wrap=graphPrintImage \
-		   -Wl,--wrap=graphRegisterPrint \
-		   -Wl,--wrap=graphUnregisterPrint \
+		   -Wl,--wrap=graphRegisterDrawFunction \
+		   -Wl,--wrap=graphUnregisterDrawFunction \
+		   -Wl,--wrap=graphRegisterDrawSprite \
+		   -Wl,--wrap=graphDrawSprite \
+		   -Wl,--wrap=graphUnregisterDrawSprite \
 		   -Wl,--wrap=rand \
 		   -Wl,--wrap=eventEmit \
 		   -Wl,--wrap=collisionRegisterCollider \

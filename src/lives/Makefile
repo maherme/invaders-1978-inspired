@@ -15,6 +15,10 @@ INCLUDES += -I../../src \
 			-I../graphicglut/src \
 			-I../events/src
 
-LDFLAGS += -Wl,--wrap=graphRegisterPrint \
+LDFLAGS += -Wl,--wrap=graphRegisterDrawFunction \
+		   -Wl,--wrap=graphUnregisterDrawFunction \
+		   -Wl,--wrap=graphRegisterDrawSprite \
+		   -Wl,--wrap=graphDrawSprite \
+		   -Wl,--wrap=graphUnregisterDrawSprite \
 		   -Wl,--wrap=graphUnregisterPrint \
 		   -Wl,--wrap=eventEmit

@@ -19,6 +19,7 @@ main(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(testFontsCreateFontsHandler),
+        cmocka_unit_test(testFontsDestroyFontsHandlerNullParameter),
         cmocka_unit_test(testFontsDestroyFontsHandler),
         cmocka_unit_test(testFontsInitLayout),
         cmocka_unit_test(testFontsDraw),

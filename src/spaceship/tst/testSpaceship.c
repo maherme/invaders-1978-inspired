@@ -30,7 +30,7 @@ testSpaceshipCreate(void **status)
     int x_pos = 10;
     int y_pos = 20;
 
-    expect_function_call(__wrap_graphRegisterPrint);
+    expect_function_call(__wrap_graphRegisterDrawFunction);
     expect_function_call(__wrap_collisionRegisterCollider);
 
     spaceship_t spaceship = spaceshipCreate(x_pos, y_pos, foo_cb);
@@ -95,8 +95,7 @@ testSpaceshipOnCollisionEntityA(void **status)
     expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
     expect_function_call(__wrap_eventEmit);
 
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     spaceshipOnCollision(&collision_data);
@@ -139,8 +138,7 @@ testSpaceshipOnCollisionEntityB(void **status)
     expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
     expect_function_call(__wrap_eventEmit);
 
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     spaceshipOnCollision(&collision_data);

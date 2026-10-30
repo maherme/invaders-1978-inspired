@@ -30,6 +30,7 @@ struct ufo_instance_t
     bool alive;
     unsigned int points;
     collision_handle_t collision_handle;
+    graph_draw_id_t draw_id;
 };
 
 static struct ufo_instance_t ufo;
@@ -89,10 +90,21 @@ ufoCreate(void)
     calculateStartingCoord(inst);
     inst->sprite.max_movement.right = GAME_WIDTH + inst->sprite.width + 1;
     inst->sprite.max_movement.left = -(inst->sprite.width + 1);
-    inst->sprite.layer = LAYER_GAME_OBJECTS;
     inst->sprite.visible = true;
     graphUpdateTimeSprite(&inst->sprite);
-    graphRegisterPrint(&inst->sprite);
+
+    graph_drawable_t drawable = {
+        .on_register_fn = graphRegisterDrawSprite,
+        .on_register_data = &inst->sprite,
+        .on_draw_fn = graphDrawSprite,
+        .on_draw_data = &inst->sprite,
+        .on_unregister_fn = graphUnregisterDrawSprite,
+        .on_unregister_data = &inst->sprite,
+        .layer = LAYER_GAME_OBJECTS,
+    };
+
+    inst->draw_id = graphRegisterDrawFunction(&drawable);
+
     inst->alive = true;
     inst->points = UFO_INITIAL_POINTS;
 
@@ -119,8 +131,7 @@ ufoDestroy(ufo_t ufo)
         return;
     }
 
-    sprite_t *ufo_sprite = graphGetSprite((base_t *)ufo);
-    graphUnregisterPrint(ufo_sprite);
+    graphUnregisterDrawFunction(ufo->draw_id);
     collisionUnregisterCollider(ufo->collision_handle);
     ufo->alive = false;
 }

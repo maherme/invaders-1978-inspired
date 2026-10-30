@@ -36,7 +36,7 @@ testBunkersCreate(void **status)
 
     for (size_t i = 0; i < NUM_TEST_BUNKERS; i++)
     {
-        expect_function_call(__wrap_graphRegisterPrint);
+        expect_function_call(__wrap_graphRegisterDrawFunction);
         expect_function_call(__wrap_collisionRegisterCollider);
     }
 

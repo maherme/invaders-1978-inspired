@@ -34,7 +34,7 @@ testUfoCreateLeftDirection(void **status)
     will_return(__wrap_rand, 1);
     expect_function_call(__wrap_rand);
     expect_function_call(__wrap_graphUpdateTimeSprite);
-    expect_function_call(__wrap_graphRegisterPrint);
+    expect_function_call(__wrap_graphRegisterDrawFunction);
     expect_function_call(__wrap_collisionRegisterCollider);
 
     ufo_t ufo = ufoCreate();
@@ -49,7 +49,7 @@ testUfoCreateRightDirection(void **status)
     will_return(__wrap_rand, RAND_MAX);
     expect_function_call(__wrap_rand);
     expect_function_call(__wrap_graphUpdateTimeSprite);
-    expect_function_call(__wrap_graphRegisterPrint);
+    expect_function_call(__wrap_graphRegisterDrawFunction);
     expect_function_call(__wrap_collisionRegisterCollider);
 
     ufo_t ufo = ufoCreate();
@@ -70,8 +70,7 @@ testUfoDestroy(void **status)
     (void)status;
     ufo_t ufo = helperUT_ufoGetInstance();
 
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     ufoDestroy(ufo);
@@ -243,8 +242,7 @@ testUfoOnCollisionEntityA(void **status)
     expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
     expect_function_call(__wrap_eventEmit);
 
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     ufoOnCollision(&collision_data);
@@ -290,8 +288,7 @@ testUfoOnCollisionEntityB(void **status)
     expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
     expect_function_call(__wrap_eventEmit);
 
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     ufoOnCollision(&collision_data);

@@ -45,19 +45,25 @@ testFontsInitLayout(void **status)
     for (size_t i = 0; i < expected_size; i++)
     {
         sprite_t *expected_sprite = helperUT_fontsGetSpritesPointer(fonts_handler, i);
-        expect_uint_value(__wrap_graphRegisterPrint, sprite, (uintptr_t)expected_sprite);
-        expect_function_call(__wrap_graphRegisterPrint);
+        expect_uint_value(__wrap_graphRegisterDrawFunction, drawable->on_register_data, (uintptr_t)expected_sprite);
+        expect_uint_value(__wrap_graphRegisterDrawFunction, drawable->on_draw_data, (uintptr_t)expected_sprite);
+        expect_uint_value(__wrap_graphRegisterDrawFunction, drawable->on_unregister_data, (uintptr_t)expected_sprite);
+        expect_function_call(__wrap_graphRegisterDrawFunction);
     }
 
-    fontsInitLayout(fonts_handler, expected_x, expected_y);
+    fontsInitLayout(fonts_handler, expected_x, expected_y, LAYER_BACKGROUND);
 
-    for (size_t i = 0; i < expected_size; i++)
-    {
-        sprite_t *expected_sprite = helperUT_fontsGetSpritesPointer(fonts_handler, i);
-        assert_int_equal(expected_sprite->layer, LAYER_HUD);
-    }
+    assert_int_equal(helperUT_fontsGetLayer(fonts_handler), LAYER_BACKGROUND);
 
     helperUT_fontsFreeHandler(fonts_handler);
+}
+
+void
+testFontsDestroyFontsHandlerNullParameter(void **status)
+{
+    (void)status;
+
+    fontsDestroyFontsHandler(NULL);
 }
 
 void
@@ -66,6 +72,11 @@ testFontsDestroyFontsHandler(void **status)
     (void)status;
     size_t expected_size = 2;
     fonts_handler_t *fonts_handler = helperUT_fontsMakeFakeHandler(expected_size, 0, 0);
+
+    for (size_t i = 0; i < expected_size; i++)
+    {
+        expect_function_call(__wrap_graphUnregisterDrawFunction);
+    }
 
     fontsDestroyFontsHandler(fonts_handler);
 
@@ -152,7 +163,6 @@ testFontsDrawSmallerBuffer(void **status)
     sprite->width = 7;
     sprite->height = 8;
     sprite->visible = true;
-    sprite->layer = LAYER_HUD;
 
     fontsDraw("AB", fonts_handler);
 
@@ -160,7 +170,6 @@ testFontsDrawSmallerBuffer(void **status)
     assert_int_equal(sprite->y, 0);
     assert_int_equal(sprite->width, 7);
     assert_int_equal(sprite->height, 8);
-    assert_int_equal(sprite->layer, LAYER_HUD);
     assert_true(sprite->visible);
     assert_ptr_equal(sprite->image, expected_image);
 
@@ -216,11 +225,10 @@ testFontsDrawNumber(void **status)
     size_t expected_size = 5;
     fonts_handler_t *fonts_handler = helperUT_fontsMakeFakeHandler(expected_size, 10, 20);
 
-    sprite_t *sprites = helperUT_fontsGetSpritesPointer(fonts_handler, 0);
-
     for (size_t i = 0; i < expected_size; i++)
     {
-        expect_uint_value(__wrap_graphUpdateSprite, sprite, (uintptr_t)&sprites[i]);
+        sprite_t *sprite = helperUT_fontsGetSpritesPointer(fonts_handler, i);
+        expect_uint_value(__wrap_graphUpdateSprite, sprite, (uintptr_t)sprite);
         expect_function_call(__wrap_graphUpdateSprite);
     }
 

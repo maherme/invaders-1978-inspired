@@ -39,6 +39,7 @@ struct alien_instance
     bool alive;
     unsigned int points;
     collision_handle_t collision_handle;
+    graph_draw_id_t draw_id;
 };
 
 static struct
@@ -168,10 +169,21 @@ alienCreate(int x, int y, alien_type_t type, int index)
     inst->sprite.max_movement.left = 0;
     inst->sprite.max_movement.down = 0;
     inst->sprite.num_frames = ALIEN_NUM_FRAMES;
-    inst->sprite.layer = LAYER_GAME_OBJECTS;
     inst->sprite.visible = true;
     graphUpdateTimeSprite(&inst->sprite);
-    graphRegisterPrint(&inst->sprite);
+
+    graph_drawable_t drawable = {
+        .on_register_fn = graphRegisterDrawSprite,
+        .on_register_data = &inst->sprite,
+        .on_draw_fn = graphDrawSprite,
+        .on_draw_data = &inst->sprite,
+        .on_unregister_fn = graphUnregisterDrawSprite,
+        .on_unregister_data = &inst->sprite,
+        .layer = LAYER_GAME_OBJECTS,
+    };
+
+    inst->draw_id = graphRegisterDrawFunction(&drawable);
+
     inst->alive = true;
 
     collider_t col = {
@@ -190,8 +202,7 @@ alienCreate(int x, int y, alien_type_t type, int index)
 static void
 alienDestroy(alien_t alien)
 {
-    sprite_t *alien_sprite = graphGetSprite((base_t *)alien);
-    graphUnregisterPrint(alien_sprite);
+    graphUnregisterDrawFunction(alien->draw_id);
     collisionUnregisterCollider(alien->collision_handle);
     alien->alive = false;
     alienPool.aliens_alive--;

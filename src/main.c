@@ -272,7 +272,7 @@ main(int argc, char **argv)
 
     srand(time(NULL));
 
-    graphRegisterPrintInit();
+    graphRegisterDrawInit();
     graphInitGlut(&initGlutConfig);
     keyboardRegisterAction(spaceshipFire, ACTION_KEY_DOWN, ' ');
     keyboardInit();

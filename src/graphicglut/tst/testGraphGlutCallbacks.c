@@ -64,19 +64,12 @@ __wrap_gluOrtho2D(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top)
     function_called();
 }
 
-void
-__wrap_graphPrintImage(const sprite_t *const sprite)
-{
-    check_expected_ptr(sprite);
-    function_called();
-}
-
 int
 setup(void **state)
 {
     (void)state;
-    graphRegisterPrintInit();
-    helperUT_graphGlutResetRegisteredSprites();
+    graphRegisterDrawInit();
+    helperUT_graphGlutResetRegisteredDrawables();
     return 0;
 }
 
@@ -84,123 +77,221 @@ int
 teardown(void **state)
 {
     (void)state;
-    helperUT_graphGlutResetRegisteredSprites();
+    helperUT_graphGlutResetRegisteredDrawables();
     return 0;
 }
 
-void
-testGraphRegisterPrintFailNullParameter(void **status)
+static void
+testRegisterCallback(void *data)
 {
-    (void)status;
-
-    int result = graphRegisterPrint(NULL);
-    assert_int_equal(result, -1);
+    check_expected_ptr(data);
+    function_called();
 }
 
 static void
-register_sprites(sprite_t **sprite, int n)
+testUnregisterCallback(void *data)
 {
-    for (int i = 0; i < n; i++)
-    {
-        expect_function_call(__wrap_utilsCalloc);
-        expect_function_call(__wrap_graphCreateImage);
-        int result = graphRegisterPrint(sprite[i]);
-        assert_int_equal(result, 0);
-    }
+    check_expected_ptr(data);
+    function_called();
+}
+
+static int draw_order[16];
+static size_t draw_count;
+
+static void
+testDrawCallback(void *data)
+{
+    assert_true(draw_count < ARRAY_SIZE(draw_order));
+
+    draw_order[draw_count++] = *(int *)data;
 }
 
 void
-testGraphRegisterPrintSuccess(void **status)
+testGraphRegisterDrawFunctionFailNotInitialized(void **status)
 {
     (void)status;
-    sprite_t sprite = {0};
-    sprite.layer = LAYER_BACKGROUND;
-    sprite_t *expected_sprites[] = {&sprite};
 
-    register_sprites(expected_sprites, ARRAY_SIZE(expected_sprites));
-    assert_true(helperUT_graphGlutSpriteIsRegistered(expected_sprites[0]));
+    helperUT_graphGlutReset();
+
+    graph_drawable_t drawable = {
+        .layer = LAYER_BACKGROUND,
+    };
+
+    assert_int_equal(graphRegisterDrawFunction(&drawable), GRAPH_DRAW_ID_INVALID);
 }
 
 void
-testGraphUnregisterPrintFailNullParameter(void **status)
+testGraphRegisterDrawFunctionFailNullParameter(void **status)
 {
     (void)status;
 
-    int result = graphUnregisterPrint(NULL);
-    assert_int_equal(result, -1);
+    graph_draw_id_t result = graphRegisterDrawFunction(NULL);
+    assert_int_equal(result, GRAPH_DRAW_ID_INVALID);
 }
 
 void
-testGraphUnregisterPrintNoCallbacksFound(void **status)
+testGraphRegisterDrawFunctionFailNegativeLayer(void **status)
 {
     (void)status;
-    sprite_t sprite = {0};
-    sprite.layer = LAYER_BACKGROUND;
 
-    int result = graphUnregisterPrint(&sprite);
-    assert_int_equal(result, 0);
-    assert_false(helperUT_graphGlutSpriteIsRegistered(&sprite));
+    graph_drawable_t drawable = {0};
+    drawable.layer = -1;
+
+    graph_draw_id_t result = graphRegisterDrawFunction(&drawable);
+
+    assert_int_equal(result, GRAPH_DRAW_ID_INVALID);
 }
 
 void
-testGraphUnregisterPrintSuccessOneCallback(void **status)
+testGraphRegisterDrawFunctionFailLayerOutOfRange(void **status)
 {
     (void)status;
-    sprite_t sprite = {0};
-    sprite.layer = LAYER_BACKGROUND;
-    sprite_t *expected_sprites[] = {&sprite};
 
-    register_sprites(expected_sprites, ARRAY_SIZE(expected_sprites));
-    assert_true(helperUT_graphGlutSpriteIsRegistered(expected_sprites[0]));
+    graph_drawable_t drawable = {
+        .layer = NUM_RENDER_LAYERS,
+    };
 
-    expect_function_call(__wrap_graphDestroyImage);
-    int result = graphUnregisterPrint(expected_sprites[0]);
-    assert_int_equal(result, 1);
-    assert_false(helperUT_graphGlutSpriteIsRegistered(expected_sprites[0]));
+    graph_draw_id_t result = graphRegisterDrawFunction(&drawable);
+
+    assert_int_equal(result, GRAPH_DRAW_ID_INVALID);
 }
 
 void
-testGraphUnregisterPrintSuccessLastCallback(void **status)
+testGraphRegisterDrawFunctionUniqueIds(void **status)
 {
     (void)status;
-    sprite_t sprite1 = {0}, sprite2 = {0};
-    sprite1.layer = LAYER_BACKGROUND;
-    sprite2.layer = LAYER_BACKGROUND;
-    sprite_t *expected_sprites[] = {&sprite1, &sprite2};
 
-    register_sprites(expected_sprites, ARRAY_SIZE(expected_sprites));
-    assert_true(helperUT_graphGlutSpriteIsRegistered(expected_sprites[0]));
-    assert_true(helperUT_graphGlutSpriteIsRegistered(expected_sprites[1]));
+    graph_drawable_t drawable1 = {
+        .layer = LAYER_BACKGROUND,
+    };
+    graph_drawable_t drawable2 = {
+        .layer = LAYER_BACKGROUND,
+    };
 
-    expect_function_call(__wrap_graphDestroyImage);
-    int result = graphUnregisterPrint(expected_sprites[1]);
-    assert_int_equal(result, 1);
-    assert_true(helperUT_graphGlutSpriteIsRegistered(expected_sprites[0]));
-    assert_false(helperUT_graphGlutSpriteIsRegistered(expected_sprites[1]));
+    expect_function_call(__wrap_utilsCalloc);
+    graph_draw_id_t id1 = graphRegisterDrawFunction(&drawable1);
+
+    expect_function_call(__wrap_utilsCalloc);
+    graph_draw_id_t id2 = graphRegisterDrawFunction(&drawable2);
+
+    assert_int_not_equal(id1, GRAPH_DRAW_ID_INVALID);
+    assert_int_not_equal(id2, GRAPH_DRAW_ID_INVALID);
+    assert_int_not_equal(id1, id2);
 }
 
 void
-testGraphUnregisterPrintSuccessMiddleCallback(void **status)
+testGraphRegisterDrawFunctionCallback(void **status)
 {
     (void)status;
-    sprite_t sprite1 = {0}, sprite2 = {0}, sprite3 = {0};
-    sprite1.layer = LAYER_BACKGROUND;
-    sprite2.layer = LAYER_BACKGROUND;
-    sprite3.layer = LAYER_BACKGROUND;
-    sprite_t *expected_sprites[] = {&sprite1, &sprite2, &sprite3};
 
-    register_sprites(expected_sprites, ARRAY_SIZE(expected_sprites));
-    assert_true(helperUT_graphGlutSpriteIsRegistered(expected_sprites[0]));
-    assert_true(helperUT_graphGlutSpriteIsRegistered(expected_sprites[1]));
-    assert_true(helperUT_graphGlutSpriteIsRegistered(expected_sprites[2]));
+    int expected_data = 42;
 
-    expect_function_call(__wrap_graphDestroyImage);
+    graph_drawable_t drawable = {
+        .layer = LAYER_BACKGROUND,
+        .on_register_fn = testRegisterCallback,
+        .on_register_data = &expected_data,
+    };
 
-    int result = graphUnregisterPrint(expected_sprites[1]);
-    assert_int_equal(result, 1);
-    assert_true(helperUT_graphGlutSpriteIsRegistered(expected_sprites[0]));
-    assert_false(helperUT_graphGlutSpriteIsRegistered(expected_sprites[1]));
-    assert_true(helperUT_graphGlutSpriteIsRegistered(expected_sprites[2]));
+    expect_function_call(__wrap_utilsCalloc);
+
+    expect_uint_value(testRegisterCallback, data, (uintptr_t)&expected_data);
+    expect_function_call(testRegisterCallback);
+
+    graph_draw_id_t id = graphRegisterDrawFunction(&drawable);
+
+    assert_int_not_equal(id, GRAPH_DRAW_ID_INVALID);
+}
+
+void
+testGraphUnregisterDrawFunctionFailNotInitialized(void **status)
+{
+    (void)status;
+
+    graph_drawable_t drawable = {
+        .layer = LAYER_BACKGROUND,
+    };
+
+    expect_function_call(__wrap_utilsCalloc);
+    graph_draw_id_t id = helperUT_graphGlutInjectDrawable(&drawable);
+
+    helperUT_graphGlutReset();
+
+    assert_int_equal(graphUnregisterDrawFunction(id), -1);
+}
+
+void
+testGraphUnregisterDrawFunctionSuccess(void **status)
+{
+    (void)status;
+
+    graph_drawable_t drawable = {
+        .layer = LAYER_BACKGROUND,
+    };
+
+    expect_function_call(__wrap_utilsCalloc);
+    graph_draw_id_t id = helperUT_graphGlutInjectDrawable(&drawable);
+
+    assert_int_equal(graphUnregisterDrawFunction(id), 1);
+}
+
+void
+testGraphUnregisterDrawFunctionNotFound(void **status)
+{
+    (void)status;
+
+    assert_int_equal(graphUnregisterDrawFunction(1234), 0);
+}
+
+void
+testGraphUnregisterDrawFunctionInvalidId(void **status)
+{
+    (void)status;
+
+    assert_int_equal(graphUnregisterDrawFunction(GRAPH_DRAW_ID_INVALID), -1);
+}
+
+void
+testGraphUnregisterDrawFunctionCallback(void **status)
+{
+    (void)status;
+
+    int expected_data = 42;
+
+    graph_drawable_t drawable = {
+        .layer = LAYER_BACKGROUND,
+        .on_unregister_fn = testUnregisterCallback,
+        .on_unregister_data = &expected_data,
+    };
+
+    expect_function_call(__wrap_utilsCalloc);
+    graph_draw_id_t id = helperUT_graphGlutInjectDrawable(&drawable);
+
+    expect_uint_value(testUnregisterCallback, data, (uintptr_t)&expected_data);
+    expect_function_call(testUnregisterCallback);
+
+    assert_int_equal(graphUnregisterDrawFunction(id), 1);
+}
+
+void
+testGraphUnregisterDrawFunctionKeepsOtherDrawables(void **status)
+{
+    (void)status;
+
+    graph_drawable_t drawable1 = {
+        .layer = LAYER_BACKGROUND,
+    };
+    graph_drawable_t drawable2 = {
+        .layer = LAYER_BACKGROUND,
+    };
+
+    expect_function_call(__wrap_utilsCalloc);
+    graph_draw_id_t id1 = helperUT_graphGlutInjectDrawable(&drawable1);
+
+    expect_function_call(__wrap_utilsCalloc);
+    graph_draw_id_t id2 = helperUT_graphGlutInjectDrawable(&drawable2);
+
+    assert_int_equal(graphUnregisterDrawFunction(id1), 1);
+    assert_int_equal(graphUnregisterDrawFunction(id2), 1);
 }
 
 typedef struct
@@ -241,23 +332,165 @@ checkViewport(expected_glviewport_t *glviewport, expected_gluortho2d_t *gluortho
     expect_function_call(__wrap_glLoadIdentity);
 }
 
+static void
+expectGraphGlutDisplay(void)
+{
+    expected_glviewport_t game_vp = {
+        .x = 1,
+        .y = 2,
+        .w = 3,
+        .h = 4,
+    };
+
+    expected_glviewport_t hud_vp = {
+        .x = 5,
+        .y = 6,
+        .w = 7,
+        .h = 8,
+    };
+
+    expected_gluortho2d_t game_ortho = {
+        .left = 0,
+        .right = GAME_WIDTH,
+        .bottom = 0,
+        .top = GAME_HEIGHT,
+    };
+
+    expected_gluortho2d_t hud_ortho = {
+        .left = 0,
+        .right = GAME_WIDTH,
+        .bottom = 0,
+        .top = HUD_HEIGHT,
+    };
+
+    helperUT_graphGlutSetGameViewport(&game_vp);
+    helperUT_graphGlutSetHudViewport(&hud_vp);
+
+    expect_uint_value(__wrap_glClear, mask, GL_COLOR_BUFFER_BIT);
+    expect_function_call(__wrap_glClear);
+
+    checkViewport(&game_vp, &game_ortho);
+
+    expect_int_value(__wrap_graphPrintBorder, x, 0);
+    expect_int_value(__wrap_graphPrintBorder, y, 0);
+    expect_int_value(__wrap_graphPrintBorder, w, GAME_WIDTH);
+    expect_int_value(__wrap_graphPrintBorder, h, GAME_HEIGHT);
+    expect_function_call(__wrap_graphPrintBorder);
+
+    checkViewport(&hud_vp, &hud_ortho);
+
+    expect_int_value(__wrap_graphPrintBorder, x, 0);
+    expect_int_value(__wrap_graphPrintBorder, y, 0);
+    expect_int_value(__wrap_graphPrintBorder, w, GAME_WIDTH);
+    expect_int_value(__wrap_graphPrintBorder, h, HUD_HEIGHT);
+    expect_function_call(__wrap_graphPrintBorder);
+
+    expect_function_call(__wrap_glutSwapBuffers);
+}
+
+void
+testGraphGlutDisplayDrawLayersOrder(void **status)
+{
+    (void)status;
+
+    int layer_data[NUM_RENDER_LAYERS];
+    graph_drawable_t drawables[NUM_RENDER_LAYERS];
+
+    draw_count = 0;
+
+    for (int layer = 0; layer < NUM_RENDER_LAYERS; layer++)
+    {
+        layer_data[layer] = layer;
+
+        drawables[layer] = (graph_drawable_t){
+            .layer = layer,
+            .on_draw_fn = testDrawCallback,
+            .on_draw_data = &layer_data[layer],
+        };
+
+        expect_function_call(__wrap_utilsCalloc);
+        helperUT_graphGlutInjectDrawable(&drawables[layer]);
+    }
+
+    expectGraphGlutDisplay();
+
+    graphGlutDisplay();
+
+    assert_int_equal(draw_count, NUM_RENDER_LAYERS);
+
+    for (size_t i = 0; i < ARRAY_SIZE(drawables); i++)
+    {
+        assert_int_equal(draw_order[i], (int)i);
+    }
+}
+
+void
+testGraphGlutDisplayDrawLayersNullCallback(void **status)
+{
+    (void)status;
+
+    int expected_draw = 42;
+
+    graph_drawable_t drawable1 = {
+        .layer = LAYER_BACKGROUND,
+        .on_draw_fn = NULL,
+        .on_draw_data = NULL,
+    };
+
+    graph_drawable_t drawable2 = {
+        .layer = LAYER_EFFECTS,
+        .on_draw_fn = testDrawCallback,
+        .on_draw_data = &expected_draw,
+    };
+
+    draw_count = 0;
+
+    expect_function_call(__wrap_utilsCalloc);
+    graphRegisterDrawFunction(&drawable1);
+
+    expect_function_call(__wrap_utilsCalloc);
+    graphRegisterDrawFunction(&drawable2);
+
+    expectGraphGlutDisplay();
+
+    graphGlutDisplay();
+
+    assert_int_equal(draw_count, 1);
+    assert_int_equal(draw_order[0], expected_draw);
+}
+
+void
+testGraphGlutDisplayDrawLayersEmpty(void **status)
+{
+    (void)status;
+
+    draw_count = 0;
+
+    expectGraphGlutDisplay();
+
+    graphGlutDisplay();
+
+    assert_int_equal(draw_count, 0);
+}
+
+#if 0
 void
 testGraphGlutDisplay(void **status)
 {
     (void)status;
-    sprite_t sprite1, sprite2 = {0};
-    sprite1.layer = LAYER_BACKGROUND;
-    sprite2.layer = LAYER_HUD;
-    sprite_t *expected_sprites[] = {&sprite1, &sprite2};
+    graph_drawable_t drawable1, drawable2 = {0};
+    drawable1.layer = LAYER_BACKGROUND;
+    drawable2.layer = LAYER_HUD;
+    graph_drawable_t *expected_drawables[] = {&drawable1, &drawable2};
     expected_glviewport_t glviewport_game = {.x = 1, .y = 2, .w = 3, .h = 4};
     expected_glviewport_t glviewport_hud = {.x = 1, .y = 2, .w = 3, .h = 4};
     expected_gluortho2d_t gluortho2d_game = {.left = 0, .right = GAME_WIDTH, .bottom = 0, .top = GAME_HEIGHT};
     expected_gluortho2d_t gluortho2d_hud = {.left = 0, .right = GAME_WIDTH, .bottom = 0, .top = HUD_HEIGHT};
 
     expect_function_call(__wrap_utilsCalloc);
-    helperUT_graphGlutInjectSprite(expected_sprites[0]);
+    helperUT_graphGlutInjectDrawable(expected_drawables[0]);
     expect_function_call(__wrap_utilsCalloc);
-    helperUT_graphGlutInjectSprite(expected_sprites[1]);
+    helperUT_graphGlutInjectDrawable(expected_drawables[1]);
 
     helperUT_graphGlutSetGameViewport((void *)&glviewport_game);
     helperUT_graphGlutSetHudViewport((void *)&glviewport_hud);
@@ -266,8 +499,6 @@ testGraphGlutDisplay(void **status)
     expect_function_call(__wrap_glClear);
 
     checkViewport(&glviewport_game, &gluortho2d_game);
-    expect_uint_value(__wrap_graphPrintImage, sprite, (uintptr_t)expected_sprites[0]);
-    expect_function_call(__wrap_graphPrintImage);
     expect_int_value(__wrap_graphPrintBorder, x, 0);
     expect_int_value(__wrap_graphPrintBorder, y, 0);
     expect_int_value(__wrap_graphPrintBorder, w, GAME_WIDTH);
@@ -275,8 +506,6 @@ testGraphGlutDisplay(void **status)
     expect_function_call(__wrap_graphPrintBorder);
 
     checkViewport(&glviewport_hud, &gluortho2d_hud);
-    expect_uint_value(__wrap_graphPrintImage, sprite, (uintptr_t)expected_sprites[1]);
-    expect_function_call(__wrap_graphPrintImage);
     expect_int_value(__wrap_graphPrintBorder, x, 0);
     expect_int_value(__wrap_graphPrintBorder, y, 0);
     expect_int_value(__wrap_graphPrintBorder, w, GAME_WIDTH);
@@ -287,6 +516,7 @@ testGraphGlutDisplay(void **status)
 
     graphGlutDisplay();
 }
+#endif
 
 static void
 check_viewports(int w, int h, int expected_scale)
@@ -338,4 +568,37 @@ testGraphGlutReshapeScaleHigherThanOne(void **status)
 
     int expected_scale = 2;
     check_viewports(width, height, expected_scale);
+}
+
+void
+testGraphRegisterDrawSprite(void **status)
+{
+    (void)status;
+    sprite_t expected_sprite = {0};
+
+    expect_uint_value(__wrap_graphCreateImage, sprite, (uintptr_t)&expected_sprite);
+    expect_function_call(__wrap_graphCreateImage);
+    graphRegisterDrawSprite(&expected_sprite);
+}
+
+void
+testGraphDrawSprite(void **status)
+{
+    (void)status;
+    sprite_t expected_sprite = {0};
+
+    expect_uint_value(__wrap_graphPrintImage, sprite, (uintptr_t)&expected_sprite);
+    expect_function_call(__wrap_graphPrintImage);
+    graphDrawSprite(&expected_sprite);
+}
+
+void
+testGraphUnregisterDrawSprite(void **status)
+{
+    (void)status;
+    sprite_t expected_sprite = {0};
+
+    expect_uint_value(__wrap_graphDestroyImage, sprite, (uintptr_t)&expected_sprite);
+    expect_function_call(__wrap_graphDestroyImage);
+    graphUnregisterDrawSprite(&expected_sprite);
 }

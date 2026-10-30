@@ -17,28 +17,49 @@ int
 teardown(void **state);
 
 void
-testGraphRegisterPrintFailNullParameter(void **status);
+testGraphRegisterDrawFunctionFailNotInitialized(void **status);
 
 void
-testGraphRegisterPrintSuccess(void **status);
+testGraphRegisterDrawFunctionFailNullParameter(void **status);
 
 void
-testGraphUnregisterPrintFailNullParameter(void **status);
+testGraphRegisterDrawFunctionFailNegativeLayer(void **status);
 
 void
-testGraphUnregisterPrintNoCallbacksFound(void **status);
+testGraphRegisterDrawFunctionFailLayerOutOfRange(void **status);
 
 void
-testGraphUnregisterPrintSuccessOneCallback(void **status);
+testGraphRegisterDrawFunctionUniqueIds(void **status);
 
 void
-testGraphUnregisterPrintSuccessLastCallback(void **status);
+testGraphRegisterDrawFunctionCallback(void **status);
 
 void
-testGraphUnregisterPrintSuccessMiddleCallback(void **status);
+testGraphUnregisterDrawFunctionFailNotInitialized(void **status);
 
 void
-testGraphGlutDisplay(void **status);
+testGraphUnregisterDrawFunctionSuccess(void **status);
+
+void
+testGraphUnregisterDrawFunctionNotFound(void **status);
+
+void
+testGraphUnregisterDrawFunctionInvalidId(void **status);
+
+void
+testGraphUnregisterDrawFunctionCallback(void **status);
+
+void
+testGraphUnregisterDrawFunctionKeepsOtherDrawables(void **status);
+
+void
+testGraphGlutDisplayDrawLayersOrder(void **status);
+
+void
+testGraphGlutDisplayDrawLayersNullCallback(void **status);
+
+void
+testGraphGlutDisplayDrawLayersEmpty(void **status);
 
 void
 testGraphGlutReshapeScaleLowerThanOne(void **status);
@@ -46,4 +67,13 @@ testGraphGlutReshapeScaleLowerThanOne(void **status);
 void
 testGraphGlutReshapeScaleHigherThanOne(void **status);
 
-#endif
+void
+testGraphRegisterDrawSprite(void **status);
+
+void
+testGraphDrawSprite(void **status);
+
+void
+testGraphUnregisterDrawSprite(void **status);
+
+#endif /* __TESTGRAPHGLUTCALLBACKS_H__ */

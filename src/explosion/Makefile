@@ -21,5 +21,8 @@ LDFLAGS += -Wl,--wrap=utilsCalloc \
 		   -Wl,--wrap=graphGetSprite \
 		   -Wl,--wrap=graphNextImageToPrint \
 		   -Wl,--wrap=clock_gettime \
-		   -Wl,--wrap=graphRegisterPrint \
-		   -Wl,--wrap=graphUnregisterPrint
+		   -Wl,--wrap=graphRegisterDrawFunction \
+		   -Wl,--wrap=graphUnregisterDrawFunction \
+		   -Wl,--wrap=graphRegisterDrawSprite \
+		   -Wl,--wrap=graphDrawSprite \
+		   -Wl,--wrap=graphUnregisterDrawSprite

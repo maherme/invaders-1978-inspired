@@ -25,6 +25,7 @@ struct spaceship_instance_t
     bool alive;
     collision_handle_t collision_handle;
     void (*death_callback)(void);
+    graph_draw_id_t draw_id;
 };
 
 static struct spaceship_instance_t spaceship;
@@ -53,9 +54,20 @@ spaceshipCreate(int x, int y, void (*death_callback)(void))
     inst->sprite.time_to_move = 1000 / 60 * NS_PER_MS;
     inst->sprite.max_movement.right = GAME_WIDTH;
     inst->sprite.max_movement.left = 0;
-    inst->sprite.layer = LAYER_GAME_OBJECTS;
     inst->sprite.visible = true;
-    graphRegisterPrint(&inst->sprite);
+
+    graph_drawable_t drawable = {
+        .on_register_fn = graphRegisterDrawSprite,
+        .on_register_data = &inst->sprite,
+        .on_draw_fn = graphDrawSprite,
+        .on_draw_data = &inst->sprite,
+        .on_unregister_fn = graphUnregisterDrawSprite,
+        .on_unregister_data = &inst->sprite,
+        .layer = LAYER_GAME_OBJECTS,
+    };
+
+    inst->draw_id = graphRegisterDrawFunction(&drawable);
+
     inst->alive = true;
     inst->death_callback = death_callback;
 
@@ -77,8 +89,7 @@ spaceshipCreate(int x, int y, void (*death_callback)(void))
 static void
 spaceshipDestroy(spaceship_t spaceship)
 {
-    sprite_t *spaceship_sprite = graphGetSprite((base_t *)spaceship);
-    graphUnregisterPrint(spaceship_sprite);
+    graphUnregisterDrawFunction(spaceship->draw_id);
     collisionUnregisterCollider(spaceship->collision_handle);
     spaceship->alive = false;
 }

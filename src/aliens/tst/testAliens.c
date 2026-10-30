@@ -42,7 +42,7 @@ testAliensCreate(void **status)
     for (int i = 0; i < ALIENS_INITIAL_NUMBER; i++)
     {
         expect_function_call(__wrap_graphUpdateTimeSprite);
-        expect_function_call(__wrap_graphRegisterPrint);
+        expect_function_call(__wrap_graphRegisterDrawFunction);
         expect_function_call(__wrap_collisionRegisterCollider);
     }
 
@@ -270,8 +270,7 @@ testAliensOnCollisionEntityAAlien(void **status)
     expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
     expect_function_call(__wrap_eventEmit);
 
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     aliensOnCollision(&collision);
@@ -315,8 +314,7 @@ testAliensOnCollisionEntityBAlien(void **status)
     expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
     expect_function_call(__wrap_eventEmit);
 
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     aliensOnCollision(&collision);

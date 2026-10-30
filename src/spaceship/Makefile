@@ -19,8 +19,11 @@ INCLUDES += -I../../src \
 			-I../physic/src
 
 LDFLAGS += -Wl,--wrap=graphGetSprite \
-		   -Wl,--wrap=graphRegisterPrint \
-		   -Wl,--wrap=graphUnregisterPrint \
+		   -Wl,--wrap=graphRegisterDrawFunction \
+		   -Wl,--wrap=graphUnregisterDrawFunction \
+		   -Wl,--wrap=graphRegisterDrawSprite \
+		   -Wl,--wrap=graphDrawSprite \
+		   -Wl,--wrap=graphUnregisterDrawSprite \
 		   -Wl,--wrap=eventEmit \
 		   -Wl,--wrap=collisionRegisterCollider \
 		   -Wl,--wrap=collisionUnregisterCollider

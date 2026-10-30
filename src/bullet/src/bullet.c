@@ -40,6 +40,7 @@ struct bullet_instance
     entity_type_t type;
     bool used;
     collision_handle_t collision_handle;
+    graph_draw_id_t draw_id;
 };
 
 typedef struct
@@ -202,9 +203,19 @@ bulletCreate(int x, int y, entity_type_t type)
             setBulletType(inst, type);
             inst->sprite.x = x;
             inst->sprite.y = y;
-            inst->sprite.layer = LAYER_GAME_OBJECTS;
             inst->sprite.visible = true;
-            graphRegisterPrint(&inst->sprite);
+
+            graph_drawable_t drawable = {
+                .on_register_fn = graphRegisterDrawSprite,
+                .on_register_data = &inst->sprite,
+                .on_draw_fn = graphDrawSprite,
+                .on_draw_data = &inst->sprite,
+                .on_unregister_fn = graphUnregisterDrawSprite,
+                .on_unregister_data = &inst->sprite,
+                .layer = LAYER_GAME_OBJECTS,
+            };
+
+            inst->draw_id = graphRegisterDrawFunction(&drawable);
 
             inst->used = true;
 
@@ -233,8 +244,7 @@ bulletDestroy(bullet_t bullet)
         return;
     }
 
-    sprite_t *bullet_sprite = graphGetSprite((base_t *)bullet);
-    graphUnregisterPrint(bullet_sprite);
+    graphUnregisterDrawFunction(bullet->draw_id);
     collisionUnregisterCollider(bullet->collision_handle);
     bullet->used = false;
 }

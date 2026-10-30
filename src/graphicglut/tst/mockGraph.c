@@ -17,14 +17,21 @@
 void
 __wrap_graphCreateImage(sprite_t *sprite)
 {
-    (void)sprite;
+    check_expected_ptr(sprite);
+    function_called();
+}
+
+void
+__wrap_graphPrintImage(const sprite_t *const sprite)
+{
+    check_expected_ptr(sprite);
     function_called();
 }
 
 void
 __wrap_graphDestroyImage(sprite_t *sprite)
 {
-    (void)sprite;
+    check_expected_ptr(sprite);
     function_called();
 }
 

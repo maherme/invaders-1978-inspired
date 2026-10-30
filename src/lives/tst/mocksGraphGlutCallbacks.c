@@ -7,27 +7,45 @@
  *   Manuel Hernández Méndez <maherme.dev@gmail.com>
  */
 
+#include "graphGlutCallbacks.h"
 #include <cmocka.h>
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 
-struct sprite;
-typedef struct sprite sprite_t;
-
-int
-__wrap_graphRegisterPrint(sprite_t *sprite)
+graph_draw_id_t
+__wrap_graphRegisterDrawFunction(graph_drawable_t *drawable)
 {
-    check_expected_ptr(sprite);
+    check_expected_ptr(drawable->on_register_data);
+    check_expected_ptr(drawable->on_draw_data);
+    check_expected_ptr(drawable->on_unregister_data);
     function_called();
     return 0;
 }
 
 int
-__wrap_graphUnregisterPrint(sprite_t *sprite)
+__wrap_graphUnregisterDrawFunction(graph_draw_id_t id)
 {
-    check_expected_ptr(sprite);
+    check_expected_uint(id);
     function_called();
     return 0;
+}
+
+void
+__wrap_graphRegisterDrawSprite(void *data)
+{
+    (void)data;
+}
+
+void
+__wrap_graphDrawSprite(void *data)
+{
+    (void)data;
+}
+
+void
+__wrap_graphUnregisterDrawSprite(void *data)
+{
+    (void)data;
 }

@@ -60,9 +60,19 @@ bunkersCreate(void)
         bunker->sprite.height = BUNKER_HEIGHT;
         memcpy(bunker->image, bunker_image, sizeof(bunker_image));
         bunker->sprite.image = (char *)bunker->image;
-        bunker->sprite.layer = LAYER_BACKGROUND;
         bunker->sprite.visible = true;
-        graphRegisterPrint(&bunker->sprite);
+
+        graph_drawable_t drawable = {
+            .on_register_fn = graphRegisterDrawSprite,
+            .on_register_data = &bunker->sprite,
+            .on_draw_fn = graphDrawSprite,
+            .on_draw_data = &bunker->sprite,
+            .on_unregister_fn = NULL,
+            .on_unregister_data = NULL,
+            .layer = LAYER_BACKGROUND,
+        };
+
+        (void)graphRegisterDrawFunction(&drawable);
 
         collider_t col = {
             .x = &bunker->sprite.x,

@@ -310,19 +310,26 @@ fontsSetInBuffer(char c, sprite_t *sprite)
     return false;
 }
 
+typedef struct font_instance
+{
+    sprite_t sprite;
+    int draw_id;
+} font_instance_t;
+
 typedef struct fonts
 {
-    sprite_t *sprites;
+    font_instance_t *fonts;
     size_t size;
     int x;
     int y;
+    render_layer_t layer;
 } fonts_handler_t;
 
 fonts_handler_t *
 fontsCreateFontsHandler(size_t size)
 {
     fonts_handler_t *h = utilsCalloc(1, sizeof(*h));
-    h->sprites = utilsCalloc(size, sizeof(sprite_t));
+    h->fonts = utilsCalloc(size, sizeof(font_instance_t));
     h->size = size;
 
     return h;
@@ -334,20 +341,26 @@ fontsRegisterSprites(fonts_handler_t *h)
 
     for (size_t i = 0; i < h->size; i++)
     {
-        graphRegisterPrint(&h->sprites[i]);
+        graph_drawable_t drawable = {
+            .on_register_fn = graphRegisterDrawSprite,
+            .on_register_data = &h->fonts[i].sprite,
+            .on_draw_fn = graphDrawSprite,
+            .on_draw_data = &h->fonts[i].sprite,
+            .on_unregister_fn = graphUnregisterDrawSprite,
+            .on_unregister_data = &h->fonts[i].sprite,
+            .layer = h->layer,
+        };
+
+        h->fonts[i].draw_id = graphRegisterDrawFunction(&drawable);
     }
 }
 
 void
-fontsInitLayout(fonts_handler_t *h, int x, int y)
+fontsInitLayout(fonts_handler_t *h, int x, int y, render_layer_t layer)
 {
     h->x = x;
     h->y = y;
-
-    for (size_t i = 0; i < h->size; i++)
-    {
-        h->sprites[i].layer = LAYER_HUD;
-    }
+    h->layer = layer;
 
     fontsRegisterSprites(h);
 }
@@ -355,7 +368,17 @@ fontsInitLayout(fonts_handler_t *h, int x, int y)
 void
 fontsDestroyFontsHandler(fonts_handler_t *fonts_handler)
 {
-    UTILS_FREE(fonts_handler->sprites);
+    if (!fonts_handler)
+    {
+        return;
+    }
+
+    for (size_t i = 0; i < fonts_handler->size; i++)
+    {
+        graphUnregisterDrawFunction(fonts_handler->fonts[i].draw_id);
+    }
+
+    UTILS_FREE(fonts_handler->fonts);
     UTILS_FREE(fonts_handler);
 }
 
@@ -373,7 +396,7 @@ fontsDraw(const char *const text, fonts_handler_t *fonts_handler)
 
     for (size_t i = 0; i < len; i++)
     {
-        sprite_t *sprite = &fonts_handler->sprites[i];
+        sprite_t *sprite = &fonts_handler->fonts[i].sprite;
         bool supported = fontsSetInBuffer(text[i], sprite);
 
         sprite->x = x;
@@ -391,7 +414,7 @@ fontsDraw(const char *const text, fonts_handler_t *fonts_handler)
 
     for (size_t i = len; i < fonts_handler->size; i++)
     {
-        fonts_handler->sprites[i].visible = false;
+        fonts_handler->fonts[i].sprite.visible = false;
     }
 }
 
@@ -408,7 +431,7 @@ fonts_handler_t *
 helperUT_fontsMakeFakeHandler(size_t size, int x, int y)
 {
     fonts_handler_t *fonts_handler = calloc(1, sizeof(fonts_handler_t));
-    fonts_handler->sprites = calloc(size, sizeof(sprite_t));
+    fonts_handler->fonts = calloc(size, sizeof(font_instance_t));
     fonts_handler->size = size;
     fonts_handler->x = x;
     fonts_handler->y = y;
@@ -419,7 +442,7 @@ helperUT_fontsMakeFakeHandler(size_t size, int x, int y)
 sprite_t *
 helperUT_fontsGetSpritesPointer(fonts_handler_t *h, int index)
 {
-    return &h->sprites[index];
+    return &h->fonts[index].sprite;
 }
 
 size_t
@@ -428,10 +451,16 @@ helperUT_fontsGetSize(fonts_handler_t *fonts_handler)
     return fonts_handler->size;
 }
 
+render_layer_t
+helperUT_fontsGetLayer(fonts_handler_t *fonts_handler)
+{
+    return fonts_handler->layer;
+}
+
 void
 helperUT_fontsFreeHandler(fonts_handler_t *fonts_handler)
 {
-    free(fonts_handler->sprites);
+    free(fonts_handler->fonts);
     free(fonts_handler);
 }
 #endif /* UNIT_TESTING */
