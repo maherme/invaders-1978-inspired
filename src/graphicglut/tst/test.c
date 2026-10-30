@@ -20,16 +20,14 @@ main(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(testGraphInitGlut),
-        cmocka_unit_test_setup_teardown(testGraphRegisterPrintFailNullParameter, setup, teardown),
-        cmocka_unit_test_setup_teardown(testGraphRegisterPrintSuccess, setup, teardown),
-        cmocka_unit_test_setup_teardown(testGraphUnregisterPrintFailNullParameter, setup, teardown),
-        cmocka_unit_test_setup_teardown(testGraphUnregisterPrintNoCallbacksFound, setup, teardown),
-        cmocka_unit_test_setup_teardown(testGraphUnregisterPrintSuccessOneCallback, setup, teardown),
-        cmocka_unit_test_setup_teardown(testGraphUnregisterPrintSuccessLastCallback, setup, teardown),
-        cmocka_unit_test_setup_teardown(testGraphUnregisterPrintSuccessMiddleCallback, setup, teardown),
+        cmocka_unit_test_setup_teardown(testGraphRegisterDrawFunctionFailNullParameter, setup, teardown),
+        cmocka_unit_test_setup_teardown(testGraphRegisterDrawFunctionSuccess, setup, teardown),
         cmocka_unit_test_setup_teardown(testGraphGlutDisplay, setup, teardown),
         cmocka_unit_test(testGraphGlutReshapeScaleLowerThanOne),
         cmocka_unit_test(testGraphGlutReshapeScaleHigherThanOne),
+        cmocka_unit_test(testGraphRegisterDrawSprite),
+        cmocka_unit_test(testGraphDrawSprite),
+        cmocka_unit_test(testGraphUnregisterDrawSprite),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

@@ -12,7 +12,8 @@ include ../common.mk
 
 INCLUDES += -I../fonts/src \
 			-I../lives/src \
-			-I../score/src
+			-I../score/src \
+			-I../graphicglut/src 
 
 LDFLAGS += -Wl,--wrap=fontsCreateFontsHandler \
 		   -Wl,--wrap=fontsInitLayout \

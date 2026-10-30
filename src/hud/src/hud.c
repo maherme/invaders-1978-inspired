@@ -9,6 +9,7 @@
 
 #include "hud.h"
 #include "fonts.h"
+#include "graphGlutCallbacks.h"
 #include "lives.h"
 #include "score.h"
 
@@ -30,15 +31,15 @@ void
 hudInit(void)
 {
     lives_counter = fontsCreateFontsHandler(LIVES_COUNTER_NUM_DIGITS);
-    fontsInitLayout(lives_counter, LIVES_COUNTER_X_POS, LIVES_COUNTER_Y_POS);
+    fontsInitLayout(lives_counter, LIVES_COUNTER_X_POS, LIVES_COUNTER_Y_POS, LAYER_HUD);
     livesCreate(16, 5);
 
     score_letters = fontsCreateFontsHandler(SCORE_COUNTER_NUM_LETTERS);
-    fontsInitLayout(score_letters, SCORE_COUNTER_LETTERS_X_POS, SCORE_COUNTER_LETTERS_Y_POS);
+    fontsInitLayout(score_letters, SCORE_COUNTER_LETTERS_X_POS, SCORE_COUNTER_LETTERS_Y_POS, LAYER_HUD);
     fontsDraw("SCORE", score_letters);
 
     score_counter = fontsCreateFontsHandler(SCORE_COUNTER_NUM_DIGITS);
-    fontsInitLayout(score_counter, SCORE_COUNTER_DIGITS_X_POS, SCORE_COUNTER_DIGITS_Y_POS);
+    fontsInitLayout(score_counter, SCORE_COUNTER_DIGITS_X_POS, SCORE_COUNTER_DIGITS_Y_POS, LAYER_HUD);
     scoreInit();
 }
 

@@ -20,6 +20,8 @@ void
 livesAdd(void);
 
 #ifdef UNIT_TESTING
+#include "graphGlutCallbacks.h"
+
 int
 helperUT_livesGetNumLives(void);
 
@@ -31,6 +33,9 @@ typedef struct sprite sprite_t;
 
 sprite_t *
 helperUT_livesGetSpriteByInstanceIndex(int idx);
+
+graph_draw_id_t
+helperUT_livesGetGraphDrawIdByInstanceIndex(int idx);
 #endif /* UNIT_TESTING */
 
 #endif /* __LIVES_H__ */

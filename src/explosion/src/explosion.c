@@ -47,6 +47,7 @@ struct explosion_instance
     long long update_frame_time;
     entity_type_t type;
     void (*callback)(void);
+    graph_draw_id_t draw_id;
 };
 
 typedef struct explosion_node
@@ -253,10 +254,21 @@ explosionCreate(int x, int y, entity_type_t type, void (*callback)(void))
     new_explosion->sprite.y = y;
     new_explosion->sprite.pixels_to_move = 0;
     new_explosion->sprite.time_to_move = 0;
-    new_explosion->sprite.layer = LAYER_EFFECTS;
     new_explosion->sprite.visible = true;
     clock_gettime(CLOCK_MONOTONIC, &new_explosion->creation_time);
-    graphRegisterPrint(graphGetSprite((base_t *)new_explosion));
+
+    graph_drawable_t drawable = {
+        .on_register_fn = graphRegisterDrawSprite,
+        .on_register_data = &new_explosion->sprite,
+        .on_draw_fn = graphDrawSprite,
+        .on_draw_data = &new_explosion->sprite,
+        .on_unregister_fn = graphUnregisterDrawSprite,
+        .on_unregister_data = &new_explosion->sprite,
+        .layer = LAYER_EFFECTS,
+    };
+
+    new_explosion->draw_id = graphRegisterDrawFunction(&drawable);
+
     new_explosion->callback = callback;
     new_node->explosion = new_explosion;
     list_add(&new_node->node, &explosions);
@@ -271,8 +283,7 @@ explosionTimeout(explosion_t explosion)
 
     if (utilsCheckTimeout(explosion->creation_time, explosion->explosion_time))
     {
-        sprite_t *explosion_sprite = graphGetSprite((base_t *)explosion);
-        graphUnregisterPrint(explosion_sprite);
+        graphUnregisterDrawFunction(explosion->draw_id);
         if (explosion->callback)
         {
             explosion->callback();

@@ -51,7 +51,7 @@ testBulletCreate(void **status)
             expect_function_call(__wrap_rand);
         }
 
-        expect_function_call(__wrap_graphRegisterPrint);
+        expect_function_call(__wrap_graphRegisterDrawFunction);
         expect_function_call(__wrap_collisionRegisterCollider);
 
         bulletCreate(0, 0, bullets[i]);
@@ -67,7 +67,7 @@ testBulletCreateAllTypeBulletAlien(void **status)
     will_return(__wrap_rand, 0);
     expect_function_call(__wrap_rand);
 
-    expect_function_call(__wrap_graphRegisterPrint);
+    expect_function_call(__wrap_graphRegisterDrawFunction);
     expect_function_call(__wrap_collisionRegisterCollider);
 
     bulletCreate(0, 0, ENTITY_ALIEN_BULLET);
@@ -76,7 +76,7 @@ testBulletCreateAllTypeBulletAlien(void **status)
     will_return(__wrap_rand, 50);
     expect_function_call(__wrap_rand);
 
-    expect_function_call(__wrap_graphRegisterPrint);
+    expect_function_call(__wrap_graphRegisterDrawFunction);
     expect_function_call(__wrap_collisionRegisterCollider);
 
     bulletCreate(0, 0, ENTITY_ALIEN_BULLET);
@@ -85,7 +85,7 @@ testBulletCreateAllTypeBulletAlien(void **status)
     will_return(__wrap_rand, 80);
     expect_function_call(__wrap_rand);
 
-    expect_function_call(__wrap_graphRegisterPrint);
+    expect_function_call(__wrap_graphRegisterDrawFunction);
     expect_function_call(__wrap_collisionRegisterCollider);
 
     bulletCreate(0, 0, ENTITY_ALIEN_BULLET);
@@ -96,7 +96,7 @@ testBulletCreateTwoBulletSpaceship(void **status)
 {
     (void)status;
 
-    expect_function_call(__wrap_graphRegisterPrint);
+    expect_function_call(__wrap_graphRegisterDrawFunction);
     expect_function_call(__wrap_collisionRegisterCollider);
 
     bulletCreate(0, 0, ENTITY_SPACESHIP_BULLET);
@@ -125,8 +125,7 @@ testBulletDestroy(void **status)
     (void)status;
     bullet_t bullet = helperUT_bulletInjectInPool(0, ENTITY_SPACESHIP_BULLET);
 
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     bulletDestroy(bullet);
@@ -284,8 +283,7 @@ testBulletSpaceshipHitBulletAliensCmpTrue(void **status)
     expect_function_call(cmp_foo);
 
     /* Called bulletDestroy expected */
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     helperUT_bulletInjectInPool(0, ENTITY_SPACESHIP_BULLET);
@@ -362,14 +360,12 @@ testBulletOnCollisionBulletVsBullet(void **status)
     /* Two bullets are destroyed. */
     expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
     expect_function_call(__wrap_eventEmit);
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
     expect_function_call(__wrap_eventEmit);
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     bulletOnCollision(&collision);
@@ -415,8 +411,7 @@ testBulletOnCollisionSpaceshipBulletVsAlien(void **status)
         .bounds_b = {.x = 50, .y = 60, .width = 8, .height = 8},
     };
 
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     bulletOnCollision(&collision);
@@ -444,8 +439,7 @@ testBulletOnCollisionSpaceshipBulletVsBunker(void **status)
     expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
     expect_function_call(__wrap_eventEmit);
 
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     bulletOnCollision(&collision);
@@ -482,8 +476,7 @@ testBulletOnCollisionBunkerVsSpaceshipBullet(void **status)
 
     expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
     expect_function_call(__wrap_eventEmit);
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     bulletOnCollision(&collision);
@@ -518,8 +511,7 @@ testBulletOnCollisionAlienBulletVsAlien(void **status)
         .bounds_b = {.x = 50, .y = 60, .width = 8, .height = 8},
     };
 
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     bulletOnCollision(&collision);
@@ -548,15 +540,13 @@ testBulletOnCollisionAlienBulletVsSpaceshipBullet(void **status)
     /* Alien bullet is destroyed. */
     expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
     expect_function_call(__wrap_eventEmit);
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     /* Spaceship bullet is destroyed. */
     expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
     expect_function_call(__wrap_eventEmit);
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     bulletOnCollision(&collision);
@@ -603,8 +593,7 @@ testBulletOnCollisionAlienBulletVsBunker(void **status)
 
     expect_uint_value(__wrap_eventEmit, type, EVENT_ENTITY_DIED);
     expect_function_call(__wrap_eventEmit);
-    expect_function_call(__wrap_graphGetSprite);
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
     expect_function_call(__wrap_collisionUnregisterCollider);
 
     bulletOnCollision(&collision);

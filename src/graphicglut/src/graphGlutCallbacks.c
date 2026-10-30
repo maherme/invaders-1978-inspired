@@ -12,10 +12,18 @@
 #include "list.h"
 #include "utils.h"
 #include <GL/glut.h>
+#include <stdbool.h>
+
+static bool graph_draw_initialized = false;
+static int next_draw_id = 0;
 
 typedef struct ctx_node
 {
-    sprite_t *sprite;
+    graph_draw_id_t id;
+    graph_on_draw_fn on_draw_fn;
+    void *on_draw_data;
+    graph_on_unregister_fn on_unregister_fn;
+    void *on_unregister_data;
     struct list_head node;
 } ctx_node_t;
 
@@ -36,39 +44,54 @@ static struct
 } window;
 
 void
-graphRegisterPrintInit(void)
+graphRegisterDrawInit(void)
 {
+    if (graph_draw_initialized)
+    {
+        return;
+    }
+
     for (int i = 0; i < NUM_RENDER_LAYERS; i++)
     {
         init_list_head(&render_layers[i]);
     }
+
+    graph_draw_initialized = true;
 }
 
-int
-graphRegisterPrint(sprite_t *sprite)
+graph_draw_id_t
+graphRegisterDrawFunction(graph_drawable_t *drawable)
 {
-    if (!sprite)
+    if (!graph_draw_initialized || !drawable || drawable->layer < 0 || drawable->layer >= NUM_RENDER_LAYERS)
     {
-        return -1;
+        return GRAPH_DRAW_ID_INVALID;
     }
 
     ctx_node_t *n = utilsCalloc(1, sizeof(*n));
-    n->sprite = sprite;
-    list_add_tail(&n->node, &render_layers[sprite->layer]);
-    graphCreateImage(sprite);
+    n->on_draw_fn = drawable->on_draw_fn;
+    n->on_draw_data = drawable->on_draw_data;
+    n->on_unregister_fn = drawable->on_unregister_fn;
+    n->on_unregister_data = drawable->on_unregister_data;
+    n->id = next_draw_id++;
+    list_add_tail(&n->node, &render_layers[drawable->layer]);
 
-    return 0;
+    if (drawable->on_register_fn)
+    {
+        drawable->on_register_fn(drawable->on_register_data);
+    }
+
+    return n->id;
 }
 
 int
-graphUnregisterPrint(sprite_t *sprite)
+graphUnregisterDrawFunction(graph_draw_id_t id)
 {
-    if (!sprite)
+    int removed = 0;
+
+    if (!graph_draw_initialized || id == GRAPH_DRAW_ID_INVALID)
     {
         return -1;
     }
-
-    int removed = 0;
 
     for (int i = 0; i < NUM_RENDER_LAYERS; i++)
     {
@@ -76,10 +99,13 @@ graphUnregisterPrint(sprite_t *sprite)
 
         list_for_each_entry_safe(n, tmp, &render_layers[i], node)
         {
-            if (n->sprite == sprite)
+            if (n->id == id)
             {
-                graphDestroyImage(n->sprite);
                 list_del(&n->node);
+                if (n->on_unregister_fn)
+                {
+                    n->on_unregister_fn(n->on_unregister_data);
+                }
                 UTILS_FREE(n);
                 removed++;
             }
@@ -97,7 +123,10 @@ drawLayers(int first, int last)
         ctx_node_t *n;
         list_for_each_entry(n, &render_layers[i], node)
         {
-            graphPrintImage(n->sprite);
+            if (n->on_draw_fn)
+            {
+                n->on_draw_fn(n->on_draw_data);
+            }
         }
     }
 }
@@ -183,9 +212,27 @@ graphGlutReshape(int w, int h)
     calculateViewports();
 }
 
+void
+graphRegisterDrawSprite(void *data)
+{
+    graphCreateImage((sprite_t *)data);
+}
+
+void
+graphDrawSprite(void *data)
+{
+    graphPrintImage((sprite_t *)data);
+}
+
+void
+graphUnregisterDrawSprite(void *data)
+{
+    graphDestroyImage((sprite_t *)data);
+}
+
 #ifdef UNIT_TESTING
 void
-helperUT_graphGlutResetRegisteredSprites(void)
+helperUT_graphGlutResetRegisteredDrawables(void)
 {
     for (int i = 0; i < NUM_RENDER_LAYERS; i++)
     {
@@ -193,30 +240,15 @@ helperUT_graphGlutResetRegisteredSprites(void)
     }
 }
 
-bool
-helperUT_graphGlutSpriteIsRegistered(sprite_t *sprite)
-{
-    for (int i = 0; i < NUM_RENDER_LAYERS; i++)
-    {
-        ctx_node_t *n;
-        list_for_each_entry(n, &render_layers[i], node)
-        {
-            if (n->sprite == sprite)
-            {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
 void
-helperUT_graphGlutInjectSprite(sprite_t *sprite)
+helperUT_graphGlutInjectDrawable(graph_drawable_t *drawable)
 {
     ctx_node_t *n = utilsCalloc(1, sizeof(*n));
-    n->sprite = sprite;
-    list_add(&n->node, &render_layers[sprite->layer]);
+    n->on_draw_fn = drawable->on_draw_fn;
+    n->on_draw_data = drawable->on_draw_data;
+    n->on_unregister_fn = drawable->on_unregister_fn;
+    n->on_unregister_data = drawable->on_unregister_data;
+    list_add(&n->node, &render_layers[drawable->layer]);
 }
 
 void

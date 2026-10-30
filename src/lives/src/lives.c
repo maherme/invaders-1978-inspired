@@ -24,6 +24,7 @@
 struct live_instance_t
 {
     sprite_t sprite;
+    graph_draw_id_t draw_id;
 };
 
 static struct
@@ -62,12 +63,21 @@ livesCreate(int x, int y)
         live->sprite.width = LIVE_WIDTH;
         live->sprite.height = LIVE_HEIGHT;
         live->sprite.image = (const char *)liveImage;
-        live->sprite.layer = LAYER_HUD;
         live->sprite.visible = true;
 
         if (i < LIVE_INITIAL_NUM - 1)
         {
-            graphRegisterPrint(&live->sprite);
+            graph_drawable_t drawable = {
+                .on_register_fn = graphRegisterDrawSprite,
+                .on_register_data = &live->sprite,
+                .on_draw_fn = graphDrawSprite,
+                .on_draw_data = &live->sprite,
+                .on_unregister_fn = graphUnregisterDrawSprite,
+                .on_unregister_data = &live->sprite,
+                .layer = LAYER_HUD,
+            };
+
+            live->draw_id = graphRegisterDrawFunction(&drawable);
         }
     }
 
@@ -90,7 +100,7 @@ livesRemove(void)
 
     if (sprite_index >= 0 && sprite_index < MAX_LIVES_TO_PRINT)
     {
-        graphUnregisterPrint(&livePool.lives[sprite_index].sprite);
+        graphUnregisterDrawFunction(livePool.lives[sprite_index].draw_id);
     }
 
     if (livePool.num_lives == 0)
@@ -114,7 +124,17 @@ livesAdd(void)
 
     if (sprite_index < MAX_LIVES_TO_PRINT)
     {
-        graphRegisterPrint(&livePool.lives[sprite_index].sprite);
+        graph_drawable_t drawable = {
+            .on_register_fn = graphRegisterDrawSprite,
+            .on_register_data = &livePool.lives[sprite_index].sprite,
+            .on_draw_fn = graphDrawSprite,
+            .on_draw_data = &livePool.lives[sprite_index].sprite,
+            .on_unregister_fn = graphUnregisterDrawSprite,
+            .on_unregister_data = &livePool.lives[sprite_index].sprite,
+            .layer = LAYER_HUD,
+        };
+
+        livePool.lives[sprite_index].draw_id = graphRegisterDrawFunction(&drawable);
     }
 }
 
@@ -135,5 +155,11 @@ sprite_t *
 helperUT_livesGetSpriteByInstanceIndex(int idx)
 {
     return &livePool.lives[idx].sprite;
+}
+
+graph_draw_id_t
+helperUT_livesGetGraphDrawIdByInstanceIndex(int idx)
+{
+    return livePool.lives[idx].draw_id;
 }
 #endif /* UNIT_TESTING */

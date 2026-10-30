@@ -46,8 +46,11 @@ testLivesCreate(void **status)
 
     for (int i = 0; i < expected_printed_lives; i++)
     {
-        expect_uint_value(__wrap_graphRegisterPrint, sprite, (uintptr_t)helperUT_livesGetSpriteByInstanceIndex(i));
-        expect_function_call(__wrap_graphRegisterPrint);
+        void *expected_sprite = helperUT_livesGetSpriteByInstanceIndex(i);
+        expect_uint_value(__wrap_graphRegisterDrawFunction, drawable->on_register_data, (uintptr_t)expected_sprite);
+        expect_uint_value(__wrap_graphRegisterDrawFunction, drawable->on_draw_data, (uintptr_t)expected_sprite);
+        expect_uint_value(__wrap_graphRegisterDrawFunction, drawable->on_unregister_data, (uintptr_t)expected_sprite);
+        expect_function_call(__wrap_graphRegisterDrawFunction);
     }
     checkEmitEventLivesChanged(expected_num_lives);
 
@@ -85,8 +88,8 @@ testLivesRemovePenultimateLive(void **status)
 
     helperUT_livesSetNumLives(set_num_lives);
     checkEmitEventLivesChanged(expected_num_lives);
-    expect_uint_value(__wrap_graphUnregisterPrint, sprite, (uintptr_t)helperUT_livesGetSpriteByInstanceIndex(0));
-    expect_function_call(__wrap_graphUnregisterPrint);
+    expect_uint_value(__wrap_graphUnregisterDrawFunction, id, helperUT_livesGetGraphDrawIdByInstanceIndex(0));
+    expect_function_call(__wrap_graphUnregisterDrawFunction);
 
     livesRemove();
     assert_int_equal(expected_num_lives, helperUT_livesGetNumLives());
@@ -125,11 +128,17 @@ testLivesAdd(void **status)
     int expected_num_lives = set_num_lives + 1;
 
     helperUT_livesSetNumLives(set_num_lives);
+
+    void *expected_sprite = helperUT_livesGetSpriteByInstanceIndex(set_num_lives - 1);
+
     checkEmitEventLivesChanged(expected_num_lives);
-    expect_uint_value(__wrap_graphRegisterPrint, sprite, (uintptr_t)helperUT_livesGetSpriteByInstanceIndex(set_num_lives - 1));
-    expect_function_call(__wrap_graphRegisterPrint);
+    expect_uint_value(__wrap_graphRegisterDrawFunction, drawable->on_register_data, (uintptr_t)expected_sprite);
+    expect_uint_value(__wrap_graphRegisterDrawFunction, drawable->on_draw_data, (uintptr_t)expected_sprite);
+    expect_uint_value(__wrap_graphRegisterDrawFunction, drawable->on_unregister_data, (uintptr_t)expected_sprite);
+    expect_function_call(__wrap_graphRegisterDrawFunction);
 
     livesAdd();
+
     assert_int_equal(expected_num_lives, helperUT_livesGetNumLives());
 }
 

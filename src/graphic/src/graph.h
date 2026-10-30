@@ -49,7 +49,6 @@ typedef struct sprite
     int height;
     const char *image_base;
     const char *image;
-    render_layer_t layer;
     int selected_image;
     int num_frames;
     GLuint textureId;

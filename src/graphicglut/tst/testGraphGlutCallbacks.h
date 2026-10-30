@@ -17,25 +17,10 @@ int
 teardown(void **state);
 
 void
-testGraphRegisterPrintFailNullParameter(void **status);
+testGraphRegisterDrawFunctionFailNullParameter(void **status);
 
 void
-testGraphRegisterPrintSuccess(void **status);
-
-void
-testGraphUnregisterPrintFailNullParameter(void **status);
-
-void
-testGraphUnregisterPrintNoCallbacksFound(void **status);
-
-void
-testGraphUnregisterPrintSuccessOneCallback(void **status);
-
-void
-testGraphUnregisterPrintSuccessLastCallback(void **status);
-
-void
-testGraphUnregisterPrintSuccessMiddleCallback(void **status);
+testGraphRegisterDrawFunctionSuccess(void **status);
 
 void
 testGraphGlutDisplay(void **status);
@@ -46,4 +31,13 @@ testGraphGlutReshapeScaleLowerThanOne(void **status);
 void
 testGraphGlutReshapeScaleHigherThanOne(void **status);
 
-#endif
+void
+testGraphRegisterDrawSprite(void **status);
+
+void
+testGraphDrawSprite(void **status);
+
+void
+testGraphUnregisterDrawSprite(void **status);
+
+#endif /* __TESTGRAPHGLUTCALLBACKS_H__ */

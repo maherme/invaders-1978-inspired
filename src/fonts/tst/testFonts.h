@@ -14,6 +14,9 @@ void
 testFontsCreateFontsHandler(void **status);
 
 void
+testFontsDestroyFontsHandlerNullParameter(void **status);
+
+void
 testFontsDestroyFontsHandler(void **status);
 
 void
