@@ -50,6 +50,8 @@ void
 aliensOnCollision(void *data);
 
 #ifdef UNIT_TESTING
+#include "collision.h"
+#include "graphGlutCallbacks.h"
 #include "physic.h"
 
 void
@@ -67,12 +69,23 @@ helperUT_alienSetCurrentDirection(direction_t dir);
 void
 helperUT_aliensSetType(alien_t alien, alien_type_t type);
 
+void
+helperUT_aliensSetCollisionHandle(alien_t alien, collision_handle_t collision_handle);
+
+void
+helperUT_aliensSetDrawId(alien_t alien, graph_draw_id_t draw_id);
+
 bool
 helperUT_alienGetAlive(alien_t alien);
 
 unsigned int
 helperUT_aliensGetAlives(void);
 
+sprite_t *
+helperUT_alienGetSprite(alien_t alien);
+
+alien_t
+helperUT_aliensGetAlienInstance(int alien_index);
 #endif /* UNIT_TESTING */
 
 #endif /* __ALIENS_H__ */

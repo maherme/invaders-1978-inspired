@@ -452,6 +452,18 @@ helperUT_aliensSetType(alien_t alien, alien_type_t type)
     setAlienType(alien, type);
 }
 
+void
+helperUT_aliensSetCollisionHandle(alien_t alien, collision_handle_t collision_handle)
+{
+    alien->collision_handle = collision_handle;
+}
+
+void
+helperUT_aliensSetDrawId(alien_t alien, graph_draw_id_t draw_id)
+{
+    alien->draw_id = draw_id;
+}
+
 bool
 helperUT_alienGetAlive(alien_t alien)
 {
@@ -462,6 +474,18 @@ unsigned int
 helperUT_aliensGetAlives(void)
 {
     return alienPool.aliens_alive;
+}
+
+sprite_t *
+helperUT_alienGetSprite(alien_t alien)
+{
+    return &alien->sprite;
+}
+
+alien_t
+helperUT_aliensGetAlienInstance(int alien_index)
+{
+    return &alienPool.aliens[alien_index];
 }
 
 #endif /* UNIT_TESTING */

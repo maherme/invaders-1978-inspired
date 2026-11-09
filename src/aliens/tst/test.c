@@ -23,6 +23,7 @@ main(void)
         cmocka_unit_test_setup(testAlienAliveFalse, setup),
         cmocka_unit_test_setup(testAlienAliveTrue, setup),
         cmocka_unit_test_setup(testAliensGetAlienInstanceInvalidIndex, setup),
+        cmocka_unit_test_setup(testAliensGetAlienInstanceValidIndex, setup),
         cmocka_unit_test_setup(testAliensGetAlives, setup),
         cmocka_unit_test_setup(testAliensGetShooterFormationEmpty, setup),
         cmocka_unit_test_setup(testAliensGetShooterFormationOneAlien, setup),

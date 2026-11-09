@@ -7,27 +7,72 @@
  *   Manuel Hernández Méndez <maherme.dev@gmail.com>
  */
 
+#include "mocksCollision.h"
+#include "aliens.h"
 #include "collision.h"
+#include "graph.h"
 #include <cmocka.h>
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 
-static collision_handle_t fake_collision_handle;
+static size_t expected_alien_index = 0;
+static size_t expected_collider_calls = 0;
+
+size_t
+mocksCollisionGetExpectedAlienIndex(void)
+{
+    return expected_alien_index;
+}
+
+void
+mocksCollisionResetExpectedAlienIndex(void)
+{
+    expected_alien_index = 0;
+}
+
+size_t
+mocksCollisionGetExpectedColliderCalls(void)
+{
+    return expected_collider_calls;
+}
+
+void
+mocksCollisionResetExpectedColliderCalls(void)
+{
+    expected_collider_calls = 0;
+}
 
 collision_handle_t
 __wrap_collisionRegisterCollider(collider_t *collider)
 {
-    (void)collider;
+    assert_non_null(collider);
+
+    collision_handle_t *handle = mock_ptr_type(collision_handle_t *);
+
+    alien_t alien = helperUT_aliensGetAlienInstance(expected_alien_index);
+    sprite_t *sprite = helperUT_alienGetSprite(alien);
+
+    assert_ptr_equal(collider->x, &sprite->x);
+    assert_ptr_equal(collider->y, &sprite->y);
+    assert_int_equal(collider->width, sprite->width);
+    assert_int_equal(collider->height, sprite->height);
+    assert_ptr_equal(collider->pixel_data_ref, (const char **)&sprite->image);
+    assert_int_equal(collider->entity, ENTITY_ALIEN);
+
+    expected_collider_calls++;
     function_called();
-    return fake_collision_handle;
+
+    expected_alien_index++;
+
+    return *handle;
 }
 
 int
 __wrap_collisionUnregisterCollider(collision_handle_t handle)
 {
-    (void)handle;
+    check_expected_any(handle);
     function_called();
-    return 0;
+    return (int)mock();
 }

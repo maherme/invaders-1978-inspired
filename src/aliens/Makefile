@@ -20,7 +20,6 @@ INCLUDES += -I../../src \
 
 LDFLAGS += -Wl,--wrap=utilsCalloc \
 		   -Wl,--wrap=graphUpdateTimeSprite \
-		   -Wl,--wrap=graphGetSprite \
 		   -Wl,--wrap=graphRegisterDrawFunction \
 		   -Wl,--wrap=graphUnregisterDrawFunction \
 		   -Wl,--wrap=graphRegisterDrawSprite \

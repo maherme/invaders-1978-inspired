@@ -33,6 +33,9 @@ void
 testAliensGetAlienInstanceInvalidIndex(void **status);
 
 void
+testAliensGetAlienInstanceValidIndex(void **status);
+
+void
 testAliensGetAlives(void **status);
 
 void
